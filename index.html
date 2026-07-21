@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SISKA</title>
+  
+  <link rel="manifest" href="manifest.json">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#4f46e5">
+  <meta name="apple-mobile-web-app-title" content="SIMODAR">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#4f46e5">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; background-color: #f8fafc; }
+    
+    /* Wrapper Iframe Fullscreen */
+    .app-container { width: 100%; height: 100%; border: none; }
+    iframe { width: 100%; height: 100%; border: none; display: block; }
+    
+    /* Layar Loading Awal PWA */
+    .splash-screen {
+      position: fixed; inset: 0; background: #ffffff;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.5s ease;
+    }
+    .spinner {
+      width: 50px; height: 50px;
+      border: 5px solid #e2e8f0; border-top: 5px solid #4f46e5;
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <div id="splash" class="splash-screen">
+    <div class="spinner"></div>
+    <p style="margin-top: 20px; color: #475569; font-weight: 500;">Memuat Aplikasi Perangkat Ajar...</p>
+  </div>
+
+  <div class="app-container">
+    <iframe id="appFrame" src="https://script.google.com/macros/s/AKfycbzxTf9C5Oy5stN-AmCb6T3yPtZnPvA25bQpoKZMdcrTgpxT7DnoUB5z4B_66aZb6f0tqg/exec" allow="geolocation; microphone; camera"></iframe>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('appFrame');
+    const splash = document.getElementById('splash');
+
+    // Menghilangkan splash screen setelah iframe selesai memuat sistem cloud
+    iframe.onload = function() {
+      splash.classList.add('hidden');
+    };
+
+    // Registrasi Service Worker untuk standardisasi PWA agar bisa di-install
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker berhasil didaftarkan:', reg.scope))
+          .catch(err => console.error('Service Worker gagal:', err));
+      });
+    }
+  </script>
+</body>
+</html>
