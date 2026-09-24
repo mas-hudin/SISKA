@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -2062,7 +2062,7 @@
                 const seedSiswa = [{"id":"IDWPZ4XX9AW","id_siswa":"IDWPZ4XX9AW","nis":"13126","nama":"Abdu Ariqin Halim","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDTN3IPXNTJ","id_siswa":"IDTN3IPXNTJ","nis":"13131","nama":"ADONIA ALEXA BILQIS","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDYT8HNH0O6","id_siswa":"IDYT8HNH0O6","nis":"13138","nama":"AHMAD MUSHOFA ALI","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDKSMSIRXPT","id_siswa":"IDKSMSIRXPT","nis":"13148","nama":"ALFIAH NURUL RAMADHANI","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDJUPA9YGH1","id_siswa":"IDJUPA9YGH1","nis":"13153","nama":"ALIM MAKFUD","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDTORJ5JRQD","id_siswa":"IDTORJ5JRQD","nis":"13161","nama":"APRILYA SALSABILA ZAHRAH","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDWHXPKJ1DE","id_siswa":"IDWHXPKJ1DE","nis":"13172","nama":"AYU DEWI RIYANTI","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDLJJ7QTNA4","id_siswa":"IDLJJ7QTNA4","nis":"13176","nama":"BAGUS WAHYU WIJAKSONO","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDVG446AEL7","id_siswa":"IDVG446AEL7","nis":"13187","nama":"Dhias Ratna Dhilla","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDEH2YMDIW6","id_siswa":"IDEH2YMDIW6","nis":"13194","nama":"EGI SAPUTRA","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDOQSHU1RH6","id_siswa":"IDOQSHU1RH6","nis":"13205","nama":"FARHAN BAYHAQI","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDYFMS127FP","id_siswa":"IDYFMS127FP","nis":"13217","nama":"GISELA RIYANTI","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDGNQ894AL8","id_siswa":"IDGNQ894AL8","nis":"13218","nama":"GUNTUR SAKETI","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"ID50I97P8ON","id_siswa":"ID50I97P8ON","nis":"13229","nama":"IQBAL RIZKI DERMAWAN","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDUWPT1CJQ9","id_siswa":"IDUWPT1CJQ9","nis":"13232","nama":"JIHAN TALITA ALMAIRAH","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDNTYWUN377","id_siswa":"IDNTYWUN377","nis":"13240","nama":"Kirana Nur Arizky","jk":"P","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDKMHIY87HN","id_siswa":"IDKMHIY87HN","nis":"13250","nama":"MUHAMAD ALVIN APRILIO PRATAMA","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"ID92LBYVBZ4","id_siswa":"ID92LBYVBZ4","nis":"13257","nama":"MUHAMMAD ALWY MUSYAFFA","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""},{"id":"IDZV4TDMUG9","id_siswa":"IDZV4TDMUG9","nis":"13265","nama":"MUHAMMAD VICKY","jk":"L","id_kelas":"IDB415GW307","ortu":"","nama_ortu":"","hp":"","no_hp":"","status_siswa":"Aktif","alasan_tidak_aktif":""}];
 
                 // Sinkronkan versi data ke 19 siswa sesuai spreadsheet demo
-                if (localStorage.getItem('db_version') !== 'v19_demo_siswa') {
+                if (!localStorage.getItem('db_siswa') || !localStorage.getItem('db_kelas')) {
                     localStorage.setItem('db_kelas', JSON.stringify(seedKelas));
                     localStorage.setItem('db_siswa', JSON.stringify(seedSiswa));
                     localStorage.setItem('db_version', 'v19_demo_siswa');
@@ -2475,6 +2475,26 @@
                                 if (json.siswa && json.siswa.length > 0) {
                                     this.state.siswa = json.siswa;
                                     localStorage.setItem('db_siswa', JSON.stringify(json.siswa));
+                                }
+                                if (json.absen && json.absen.length > 0) {
+                                    this.state.absen = json.absen;
+                                    localStorage.setItem('db_absen', JSON.stringify(json.absen));
+                                }
+                                if (json.sumatif && json.sumatif.length > 0) {
+                                    this.state.absen_sumatif = json.sumatif;
+                                    localStorage.setItem('db_absen_sumatif', JSON.stringify(json.sumatif));
+                                }
+                                if (json.gurupiket && json.gurupiket.length > 0) {
+                                    this.state.gurupiket = json.gurupiket;
+                                    localStorage.setItem('db_gurupiket', JSON.stringify(json.gurupiket));
+                                }
+                                if (json.grupwa && json.grupwa.length > 0) {
+                                    this.state.grupwa = json.grupwa;
+                                    localStorage.setItem('db_grupwa', JSON.stringify(json.grupwa));
+                                }
+                                if (json.pengumuman && json.pengumuman.length > 0) {
+                                    this.state.pengumuman = json.pengumuman;
+                                    localStorage.setItem('db_pengumuman', JSON.stringify(json.pengumuman));
                                 }
                                 localStorage.setItem('db_last_sync', new Date().toISOString());
                                 window._gasSyncStatus = { 
@@ -3640,6 +3660,39 @@
                     return url.replace(/\/a\/macros\/[^\/]+\/s\//, '/macros/s/').trim();
                 },
 
+                
+                parseGenericCsv: function(csvText) {
+                    if (!csvText || !csvText.trim()) return [];
+                    const lines = csvText.split(/\r\n|\n/).filter(l => l.trim().length > 0);
+                    if (lines.length < 2) return [];
+                    const parseLine = (text) => {
+                        let p = '', inQ = false, row = [];
+                        for (let i = 0; i < text.length; i++) {
+                            let c = text[i];
+                            if (c === '"') {
+                                if (inQ && text[i+1] === '"') { p += '"'; i++; }
+                                else { inQ = !inQ; }
+                            } else if (c === ',' && !inQ) {
+                                row.push(p.trim()); p = '';
+                            } else { p += c; }
+                        }
+                        row.push(p.trim());
+                        return row;
+                    };
+                    const headers = parseLine(lines[0]).map(h => h.toLowerCase().trim().replace(/^"|"$/g, ''));
+                    const result = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = parseLine(lines[i]);
+                        if (row.length === 0 || !row[0]) continue;
+                        const obj = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            obj[headers[j]] = (row[j] || '').replace(/^"|"$/g, '');
+                        }
+                        result.push(obj);
+                    }
+                    return result;
+                },
+
                 parseSiswaCsv: function(rawText) {
                     const lines = rawText.trim().split(/\r\n|\n/);
                     if (lines.length < 2) return [];
@@ -3766,177 +3819,243 @@
                     if (!rawUrl) throw new Error('URL belum diisi');
                     const clean = this.cleanUrl(rawUrl);
 
-                    // JALUR 1: LINK GOOGLE SPREADSHEET LANGSUNG (docs.google.com/spreadsheets/d/...)
                     const ssMatch = clean.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-                    if (ssMatch) {
-                        const ssId = ssMatch[1];
-                        const sUrl = `https://docs.google.com/spreadsheets/d/${ssId}/gviz/tq?tqx=out:csv&sheet=Siswa`;
-                        const respS = await fetch(sUrl);
-                        if (!respS.ok) {
-                            throw new Error(`Google Spreadsheet tidak dapat diakses (HTTP ${respS.status}). Pastikan Bagikan (Share) disetel ke "Siapa saja yang memiliki link: Pelihat".`);
-                        }
-                        const csvS = await respS.text();
-                        let kelasList = [];
+                    if (!ssMatch) {
+                        throw new Error('Gunakan Link Google Spreadsheet resmi (docs.google.com/spreadsheets/d/...). Link Apps Script (/exec) tidak didukung browser karena pembatasan CORS.');
+                    }
+                    const ssId = ssMatch[1];
+
+                    const fetchSheetSafe = async (sheetName) => {
                         try {
-                            const kUrl = `https://docs.google.com/spreadsheets/d/${ssId}/gviz/tq?tqx=out:csv&sheet=Kelas`;
-                            const respK = await fetch(kUrl);
-                            if (respK.ok) {
-                                const csvK = await respK.text();
-                                kelasList = this.parseKelasCsv(csvK);
-                            }
-                        } catch(e) {}
-
-                        const siswaList = this.parseSiswaCsv(csvS);
-                        if (siswaList.length === 0) {
-                            throw new Error('Data pada sheet "Siswa" kosong atau format kolom belum sesuai.');
+                            const sUrl = `https://docs.google.com/spreadsheets/d/${ssId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+                            const resp = await fetch(sUrl);
+                            if (!resp.ok) return [];
+                            const csvText = await resp.text();
+                            return app.siswa.parseGenericCsv(csvText);
+                        } catch(e) {
+                            console.warn('[SISKA] Gagal membaca sheet ' + sheetName, e);
+                            return [];
                         }
-                        return { success: true, siswa: siswaList, kelas: kelasList, type: 'spreadsheet' };
-                    }
+                    };
 
-                    // JALUR 2: GOOGLE APPS SCRIPT WEB APP (.../exec)
-                    const apiUrl = clean.includes('?') ? clean : `${clean}?action=getSiswaAndKelas`;
-                    const resp = await fetch(apiUrl, { method: 'GET', redirect: 'follow' });
-                    if (!resp.ok) {
-                        throw new Error(`Server GAS merespons HTTP ${resp.status}`);
-                    }
-                    const text = await resp.text();
-                    let json;
-                    try {
-                        json = JSON.parse(text);
-                    } catch(e) {
-                        throw new Error('Server Apps Script mengembalikan HTML. Jika akun belajar.id Anda membatasi akses eksternal, gunakan Link Google Spreadsheet langsung.');
-                    }
-                    return json;
+                    const [siswaRaw, kelasRaw, absenRaw, sumatifRaw, piketRaw, grupRaw, pengumumanRaw] = await Promise.all([
+                        fetchSheetSafe('Siswa'),
+                        fetchSheetSafe('Kelas'),
+                        fetchSheetSafe('Ketidakhadiran'),
+                        fetchSheetSafe('Ketidakhadiran_Sumatif'),
+                        fetchSheetSafe('GuruPiket'),
+                        fetchSheetSafe('GrupWA'),
+                        fetchSheetSafe('Pengumuman')
+                    ]);
+
+                    const siswa = siswaRaw.map(r => ({
+                        id: r.id_siswa || r.id || DB.generateId(),
+                        id_siswa: r.id_siswa || r.id || DB.generateId(),
+                        nis: r.nis || '',
+                        nama: r.nama || r.nama_siswa || '',
+                        jk: r.jk || 'L',
+                        id_kelas: r.id_kelas || r.kelas || '',
+                        ortu: r.nama_ortu || r.ortu || '',
+                        nama_ortu: r.nama_ortu || r.ortu || '',
+                        hp: r.no_hp || r.hp || '',
+                        no_hp: r.no_hp || r.hp || '',
+                        status_siswa: r.status_siswa || 'Aktif',
+                        alasan_tidak_aktif: r.alasan_tidak_aktif || ''
+                    }));
+
+                    const kelas = kelasRaw.map(r => ({
+                        id: r.id_kelas || r.id || DB.generateId(),
+                        id_kelas: r.id_kelas || r.id || DB.generateId(),
+                        kode: r.kode_kelas || r.kode || r.nama || '',
+                        kode_kelas: r.kode_kelas || r.kode || r.nama || '',
+                        nama: r.nama_kelas || r.nama || '',
+                        nama_kelas: r.nama_kelas || r.nama || '',
+                        wali: r.wali_kelas || r.wali || '',
+                        wali_kelas: r.wali_kelas || r.wali || '',
+                        status: r.status || 'Aktif'
+                    }));
+
+                    const absen = absenRaw.map(r => ({
+                        id_absen: r.id_absen || ('ABS_' + Math.random().toString(36).substr(2, 9)),
+                        tanggal: (r.tanggal || '').split(/[T ]/)[0],
+                        id_siswa: r.id_siswa || '',
+                        id_kelas: r.id_kelas || '',
+                        status: r.status || 'Hadir',
+                        keterangan: r.keterangan || ''
+                    }));
+
+                    const sumatif = sumatifRaw.map(r => ({
+                        id_absen: r.id_absen || ('SUM_' + Math.random().toString(36).substr(2, 9)),
+                        tanggal: (r.tanggal || '').split(/[T ]/)[0],
+                        ruang: r.ruang || '',
+                        id_siswa: r.id_siswa || '',
+                        id_kelas: r.id_kelas || '',
+                        kelompok: r.kelompok || '',
+                        status: r.status || 'Hadir',
+                        keterangan: r.keterangan || ''
+                    }));
+
+                    const gurupiket = piketRaw.map((r, idx) => ({
+                        id_piket: r.id_piket || ('GP' + (idx+1)),
+                        hari: (r.hari || '').toUpperCase(),
+                        urutan: parseInt(r.urutan || 1, 10),
+                        nama_guru: r.nama_guru || r.guru || ''
+                    }));
+
+                    const grupwa = grupRaw.map((r, idx) => ({
+                        id: r.id_group || r.id || ('G' + (idx+1)),
+                        id_group: r.id_group || r.id || ('G' + (idx+1)),
+                        id_kelas: r.id_kelas || '',
+                        nama: r.nama_group || r.nama || '',
+                        nama_group: r.nama_group || r.nama || '',
+                        jid: r.group_id || r.jid || '',
+                        group_id: r.group_id || r.jid || '',
+                        gateway: r.nomor_gateway || r.gateway || '',
+                        nomor_gateway: r.nomor_gateway || r.gateway || '',
+                        status: r.status || 'Aktif'
+                    }));
+
+                    const pengumuman = pengumumanRaw.map((r, idx) => ({
+                        id: r.id_pengumuman || r.id || ('P' + (idx+1)),
+                        id_pengumuman: r.id_pengumuman || r.id || ('P' + (idx+1)),
+                        tanggal: (r.tanggal || '').split(/[T ]/)[0],
+                        judul: r.judul || '',
+                        isi: r.isi || '',
+                        lampiran: r.lampiran || '',
+                        target: r.target || 'Semua Kelas',
+                        pengirim: r.pengirim || 'Admin'
+                    }));
+
+                    return {
+                        success: true,
+                        siswa, kelas, absen, sumatif, gurupiket, grupwa, pengumuman
+                    };
                 },
 
                 syncFromSpreadsheet: function() {
                     const savedUrl = localStorage.getItem('db_gas_sync_url') || '';
 
                     Swal.fire({
-                        title: '<i class="fa-solid fa-arrows-rotate text-green-500 mr-2"></i> Sinkronisasi Spreadsheet',
+                        title: '<i class="fa-solid fa-cloud-arrow-down text-emerald-500 mr-2"></i> Sinkronisasi SEMUA Sheet SISKA',
                         html: `
                             <div class="text-left text-xs text-slate-700 space-y-3">
                                 <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-                                    <p class="font-bold text-emerald-800 mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Mendukung 2 Jenis Link:</p>
-                                    <ul class="list-disc list-inside text-emerald-700 space-y-0.5 text-[11px]">
-                                        <li><b>Link Google Spreadsheet langsung</b> (Rekomendasi Utama - Bebas kendala domain belajar.id)</li>
-                                        <li><b>URL Google Apps Script</b> (Web App /exec)</li>
-                                    </ul>
+                                    <p class="font-bold text-emerald-800 mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Sinkronisasi Utuh Seluruh Database:</p>
+                                    <p class="text-emerald-700 text-[11px]">Sistem akan mengunduh dan memulihkan seluruh sheet: <b>Siswa (733), Kelas (24), Ketidakhadiran (1.320), Sumatif (179), Guru Piket (42), Grup WA (48), dan Pengumuman (71)</b>.</p>
                                 </div>
+
+                                <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-[11px] text-amber-800">
+                                    <i class="fa-solid fa-circle-exclamation text-amber-600 mr-1"></i> <b>Catatan Penting:</b> Gunakan link <b>Google Spreadsheet</b> (bukan link Apps Script /exec), karena browser memblokir Apps Script dengan error <i>'Failed to fetch' (CORS)</i>.
+                                </div>
+
                                 <div>
-                                    <label class="block font-bold text-slate-700 mb-1">Link Google Spreadsheet ATAU URL Apps Script:</label>
+                                    <label class="block font-bold text-slate-700 mb-1">Pilihan 1: Masukkan Link Google Spreadsheet:</label>
                                     <input id="swal-gas-url" type="url" value="${savedUrl}"
-                                        placeholder="https://docs.google.com/spreadsheets/d/.../edit ATAU https://script.google.com/macros/s/.../exec"
+                                        placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-green-400">
-                                    <p class="text-[10px] text-slate-400 mt-1">Jika menggunakan Link Spreadsheet, pastikan menu <b>Bagikan (Share)</b> di Spreadsheet disetel ke <b>"Siapa saja yang memiliki link: Pelihat"</b>.</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Pastikan menu <b>Bagikan (Share)</b> di Spreadsheet disetel ke <b>"Siapa saja yang memiliki link: Pelihat"</b>.</p>
                                 </div>
+
+                                <div class="pt-2 border-t border-gray-200">
+                                    <label class="block font-bold text-slate-700 mb-1">Pilihan 2: Atau Pulihkan dari File Backup JSON VPS (Instan 0.1 detik):</label>
+                                    <input id="swal-json-file" type="file" accept=".json"
+                                        class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200">
+                                </div>
+
                                 <div id="swal-sync-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
                             </div>
                         `,
                         showCancelButton: true,
-                        confirmButtonText: '<i class="fa-solid fa-arrows-rotate mr-1"></i> Sinkronkan Sekarang',
+                        confirmButtonText: '<i class="fa-solid fa-arrows-rotate mr-1"></i> Mulai Sinkronkan SEMUA Data',
                         cancelButtonText: 'Batal',
                         confirmButtonColor: '#10b981',
-                        width: '540px',
+                        width: '560px',
                         showLoaderOnConfirm: true,
-                        preConfirm: () => {
+                        preConfirm: async () => {
+                            const fileInput = document.getElementById('swal-json-file');
+                            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                                try {
+                                    const file = fileInput.files[0];
+                                    const text = await file.text();
+                                    const json = JSON.parse(text);
+                                    return { fromBackup: true, backup: json };
+                                } catch(e) {
+                                    Swal.showValidationMessage('File backup JSON tidak valid: ' + e.message);
+                                    return false;
+                                }
+                            }
+
                             const rawInput = document.getElementById('swal-gas-url').value.trim();
                             if (!rawInput || !rawInput.startsWith('https://')) {
-                                Swal.showValidationMessage('Masukkan URL yang valid (harus diawali https://)');
+                                Swal.showValidationMessage('Masukkan link Google Spreadsheet yang valid (harus diawali https://)');
                                 return false;
                             }
-                            
-                            const cleanedUrl = app.siswa.cleanUrl(rawInput);
-                            localStorage.setItem('db_gas_sync_url', cleanedUrl);
-                            DB.GAS_API_URL = cleanedUrl;
+
+                            const clean = app.siswa.cleanUrl(rawInput);
+                            localStorage.setItem('db_gas_sync_url', clean);
+                            DB.GAS_API_URL = clean;
 
                             const statusEl = document.getElementById('swal-sync-status');
                             if (statusEl) {
                                 statusEl.className = 'p-3 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200';
-                                statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengambil data dari server...';
+                                statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Sedang mengunduh seluruh sheet data dari Google Spreadsheet...';
                                 statusEl.classList.remove('hidden');
                             }
 
-                            return app.siswa.fetchRemoteData(cleanedUrl)
-                            .then(res => res)
-                            .catch(err => {
-                                Swal.showValidationMessage(
-                                    `<i class="fa-solid fa-circle-xmark mr-1"></i> ${err.message}`
-                                );
+                            try {
+                                const res = await app.siswa.fetchRemoteData(clean);
+                                return res;
+                            } catch(err) {
+                                Swal.showValidationMessage('Gagal: ' + err.message);
                                 return false;
-                            });
+                            }
                         },
                         allowOutsideClick: () => !Swal.isLoading()
                     }).then((result) => {
                         if (!result.isConfirmed || !result.value) return;
 
-                        const data = result.value;
-                        if (!data.success) {
-                            Swal.fire({ icon: 'error', title: 'Gagal Sinkronisasi', text: data.message || 'Format data tidak valid.' });
-                            return;
+                        let d = result.value;
+                        if (d.fromBackup) {
+                            const b = d.backup;
+                            d = {
+                                siswa: b.Siswa || [],
+                                kelas: b.Kelas || [],
+                                absen: b.Ketidakhadiran || [],
+                                sumatif: b.Ketidakhadiran_Sumatif || [],
+                                gurupiket: b.GuruPiket || [],
+                                grupwa: b.GrupWA || [],
+                                pengumuman: b.Pengumuman || []
+                            };
                         }
 
-                        let siswaCount = 0, kelasCount = 0, updatedCount = 0;
+                        if (d.siswa && d.siswa.length > 0) localStorage.setItem('db_siswa', JSON.stringify(d.siswa));
+                        if (d.kelas && d.kelas.length > 0) localStorage.setItem('db_kelas', JSON.stringify(d.kelas));
+                        if (d.absen && d.absen.length > 0) localStorage.setItem('db_absen', JSON.stringify(d.absen));
+                        if (d.sumatif && d.sumatif.length > 0) localStorage.setItem('db_absen_sumatif', JSON.stringify(d.sumatif));
+                        if (d.gurupiket && d.gurupiket.length > 0) localStorage.setItem('db_gurupiket', JSON.stringify(d.gurupiket));
+                        if (d.grupwa && d.grupwa.length > 0) localStorage.setItem('db_grupwa', JSON.stringify(d.grupwa));
+                        if (d.pengumuman && d.pengumuman.length > 0) localStorage.setItem('db_pengumuman', JSON.stringify(d.pengumuman));
+                        localStorage.setItem('db_version', 'v_live_full_data');
 
-                        // Sinkronisasi Kelas
-                        if (data.kelas && data.kelas.length > 0) {
-                            const existingKelasMap = {};
-                            (app.state.kelas || []).forEach(k => { existingKelasMap[k.id || k.id_kelas] = k; });
-
-                            data.kelas.forEach(k => {
-                                const kid = k.id || k.id_kelas;
-                                if (kid) existingKelasMap[kid] = Object.assign(existingKelasMap[kid] || {}, k);
-                            });
-                            app.state.kelas = Object.values(existingKelasMap);
-                            localStorage.setItem('db_kelas', JSON.stringify(app.state.kelas));
-                            kelasCount = data.kelas.length;
-                        }
-
-                        // Sinkronisasi Siswa
-                        if (data.siswa && data.siswa.length > 0) {
-                            const existingMap = {};
-                            (app.state.siswa || []).forEach(s => {
-                                const key = (s.nis || s.id || s.id_siswa || '').toString();
-                                if (key) existingMap[key] = s;
-                            });
-
-                            data.siswa.forEach(s => {
-                                const key = (s.nis || s.id || s.id_siswa || '').toString();
-                                if (!key) return;
-                                if (existingMap[key]) {
-                                    Object.assign(existingMap[key], s);
-                                    updatedCount++;
-                                } else {
-                                    existingMap[key] = s;
-                                    siswaCount++;
-                                }
-                            });
-
-                            app.state.siswa = Object.values(existingMap);
-                            localStorage.setItem('db_siswa', JSON.stringify(app.state.siswa));
-                        }
-
-                        app.siswa.renderTable();
-                        app.propagateUIComponents();
-                        app.dashboard.load();
-
-                        const totalSiswa = app.state.siswa.length;
-                        const sourceText = data.type === 'spreadsheet' ? 'Google Spreadsheet langsung' : 'Google Apps Script API';
                         Swal.fire({
                             icon: 'success',
-                            title: '✅ Sinkronisasi Berhasil!',
+                            title: '✅ SEMUA SHEET BERHASIL DIPULIHKAN!',
                             html: `
-                                <div class="text-sm text-slate-700 space-y-1">
-                                    <p>Data berhasil diambil via <b>${sourceText}</b>.</p>
-                                    <div class="bg-gray-50 rounded-xl p-3 mt-3 text-left text-xs space-y-1">
-                                        <div class="flex justify-between"><span>Siswa baru ditambahkan:</span><b class="text-green-600">${siswaCount} orang</b></div>
-                                        <div class="flex justify-between"><span>Siswa diperbarui:</span><b class="text-blue-600">${updatedCount} orang</b></div>
-                                        <div class="flex justify-between"><span>Total siswa di aplikasi:</span><b>${totalSiswa} orang</b></div>
-                                        <div class="flex justify-between"><span>Kelas tersinkronkan:</span><b>${kelasCount} kelas</b></div>
-                                    </div>
+                                <div class="text-left text-xs text-slate-700 space-y-1.5 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <div class="flex justify-between py-0.5 border-b border-gray-200"><span>Data Siswa:</span><b class="text-emerald-700">${d.siswa ? d.siswa.length : 0} siswa</b></div>
+                                    <div class="flex justify-between py-0.5 border-b border-gray-200"><span>Data Kelas:</span><b class="text-emerald-700">${d.kelas ? d.kelas.length : 0} kelas</b></div>
+                                    <div class="flex justify-between py-0.5 border-b border-gray-200"><span>Riwayat Ketidakhadiran:</span><b class="text-emerald-700">${d.absen ? d.absen.length : 0} baris</b></div>
+                                    <div class="flex justify-between py-0.5 border-b border-gray-200"><span>Ketidakhadiran Sumatif:</span><b class="text-emerald-700">${d.sumatif ? d.sumatif.length : 0} baris</b></div>
+                                    <div class="flex justify-between py-0.5 border-b border-gray-200"><span>Jadwal Guru Piket:</span><b class="text-emerald-700">${d.gurupiket ? d.gurupiket.length : 0} guru</b></div>
+                                    <div class="flex justify-between py-0.5 border-b border-gray-200"><span>Grup WhatsApp Kelas:</span><b class="text-emerald-700">${d.grupwa ? d.grupwa.length : 0} grup</b></div>
+                                    <div class="flex justify-between py-0.5"><span>Pengumuman:</span><b class="text-emerald-700">${d.pengumuman ? d.pengumuman.length : 0} data</b></div>
                                 </div>
+                                <p class="text-[11px] text-gray-500 mt-2">Halaman akan dimuat ulang untuk menampilkan seluruh data.</p>
                             `,
+                            confirmButtonText: 'Selesai & Muat Ulang Tampilan',
                             confirmButtonColor: '#10b981'
+                        }).then(() => {
+                            location.reload();
                         });
                     });
                 }
