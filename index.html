@@ -2414,6 +2414,39 @@
             },
 
             syncWithDatabase: async function() {
+                // === REALTIME SYNC DARI PUSAT DATABASE VPS (UNTUK HP & LAPTOP) ===
+                try {
+                    const vpsRes = await fetch('https://api.mashudin.my.id/api/all-data');
+                    if (vpsRes.ok) {
+                        const json = await vpsRes.json();
+                        if (json && json.success && json.siswa && json.siswa.length > 0) {
+                            this.state.siswa = json.siswa;
+                            this.state.kelas = json.kelas || [];
+                            this.state.absen = json.absen || [];
+                            this.state.absen_sumatif = json.sumatif || [];
+                            this.state.gurupiket = json.gurupiket || [];
+                            this.state.grupwa = json.grupwa || [];
+                            this.state.pengumuman = json.pengumuman || [];
+                            if (json.settings && Object.keys(json.settings).length > 0) {
+                                this.state.setting = Object.assign(this.state.setting || {}, json.settings);
+                                localStorage.setItem('db_setting', JSON.stringify(this.state.setting));
+                            }
+                            localStorage.setItem('db_siswa', JSON.stringify(this.state.siswa));
+                            localStorage.setItem('db_kelas', JSON.stringify(this.state.kelas));
+                            localStorage.setItem('db_absen', JSON.stringify(this.state.absen));
+                            localStorage.setItem('db_absen_sumatif', JSON.stringify(this.state.absen_sumatif));
+                            localStorage.setItem('db_gurupiket', JSON.stringify(this.state.gurupiket));
+                            localStorage.setItem('db_grupwa', JSON.stringify(this.state.grupwa));
+                            localStorage.setItem('db_pengumuman', JSON.stringify(this.state.pengumuman));
+                            localStorage.setItem('db_version', 'v_live_full_data');
+                            console.info('[SISKA] Real-time sync dari VPS sukses:', json.siswa.length, 'siswa.');
+                            return;
+                        }
+                    }
+                } catch(e) {
+                    console.warn('[SISKA] Gagal sync realtime dari VPS, menggunakan cache lokal:', e);
+                }
+
                 if (DB.isGAS) {
                     try {
                         const [kelasData, siswaData, grupwaData, logData, settingData, absenData, absenSumatifData, absenTkaData, absenBtkaData, pengumumanData, piketData] = await Promise.all([
@@ -4458,6 +4491,15 @@
                             });
                         }
                         localStorage.setItem('db_absen', JSON.stringify(currentAbsen));
+                        try {
+                            await fetch('https://api.mashudin.my.id/api/save-absen', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        } catch(err) {
+                            console.warn('[SISKA] Gagal push absen ke VPS:', err);
+                        }
                         result = { success: true };
                     }
 
