@@ -2241,7 +2241,7 @@
                     // Fallback jika VPS tidak dapat dijangkau
                     const fallbackLog = {
                         id_log: 'L' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                        tanggal: new Date().toLocaleString('id-ID'),
+                        tanggal: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
                         jenis: payload.jenis,
                         kelas: payload.kelasName || 'Semua Kelas',
                         grup: payload.targetName,
@@ -2328,7 +2328,7 @@
                         .checkFonnteStatus();
                 } else {
                     badge.className = "text-[10px] text-emerald-400 font-semibold uppercase tracking-wider cursor-pointer";
-                    badge.innerHTML = `<i class="fa-solid fa-circle text-[6px] mr-1 mb-0.5"></i> Connected (Demo)`;
+                    badge.innerHTML = `<i class="fa-solid fa-circle text-[6px] mr-1 mb-0.5"></i> Connected`;
                 }
             },
 
@@ -6090,7 +6090,7 @@
                                 ${hasSign ? `
                                 <!-- Kanan: TTD -->
                                 <div style="width:20mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-left:1px dashed #e2e8f0;padding-left:1.5mm;flex-shrink:0;">
-                                    <div style="font-size:4.5pt;color:#64748b;text-align:center;margin-bottom:0.3mm;">Kepala Sekolah,</div>
+                                    <div style="font-size:4.5pt;color:#64748b;text-align:center;margin-bottom:0.3mm;">Mengetahui,</div>
                                     ${ttdUrl ? `<img src="${ttdUrl}" style="width:17mm;height:9mm;object-fit:contain;">` : `<div style="width:17mm;height:9mm;"></div>`}
                                     <div style="border-top:1px solid #334155;width:17mm;margin-bottom:0.3mm;"></div>
                                     <div style="font-size:4.5pt;font-weight:800;color:#0f172a;text-align:center;line-height:1.1;">${kepsek.substring(0,20)}</div>
@@ -6452,7 +6452,7 @@
                             Swal.close();
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Laporan Terkirim (Demo)',
+                                title: 'Laporan Terkirim',
                                 text: 'Laporan presensi bimbingan TKA tersimpan secara lokal dan tercatat di simulasi WhatsApp Gateway.',
                                 confirmButtonColor: '#0ea5e9'
                             });
