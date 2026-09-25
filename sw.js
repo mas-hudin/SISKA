@@ -1,40 +1,25 @@
-const CACHE_NAME = 'SISKA';
-const ASSETS_TO_CACHE = [
-  'index.html',
-  'manifest.json',
-  'icon-192.png',
-  'icon-512.png'
-];
+const CACHE_NAME = 'siska-realtime-v5';
 
-// Tahap Install: Menyimpan cangkang aplikasi ke dalam cache lokal browser
+// Install: Langsung aktif tanpa menunggu tab ditutup
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
+  self.skipWaiting();
 });
 
-// Tahap Aktivasi: Membersihkan cache versi lama jika ada pembaruan sistem shell
+// Activate: Hapus semua cache lama demo agar bersih
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then(keys => {
+      return Promise.all(keys.map(k => caches.delete(k)));
+    }).then(() => self.clients.claim())
   );
 });
 
-// Strategi Fetch: Memuat cangkang dari cache untuk kecepatan, lalu melakukan fetch ke server
+// Fetch: Selalu utamakan data realtime VPS
 self.addEventListener('fetch', event => {
+  if (event.request.url.includes('/api/')) {
+    return;
+  }
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request);
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
