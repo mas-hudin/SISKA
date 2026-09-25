@@ -2213,23 +2213,46 @@
                             .sendWhatsAppMessage(payload.target, payload.message);
                     });
                 } else {
-                    return new Promise(resolve => {
-                        setTimeout(() => {
-                            const logs = JSON.parse(localStorage.getItem('db_log') || '[]');
-                            logs.push({
-                                id_log: 'ID' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                                tanggal: new Date().toLocaleString('id-ID'),
+                    try {
+                        const resp = await fetch('https://api.mashudin.my.id/api/send-wa', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                target: payload.target,
+                                message: payload.message,
                                 jenis: payload.jenis,
-                                kelas: payload.kelasName || 'Semua Kelas',
-                                grup: payload.targetName,
-                                pesan: payload.message,
-                                status: 'Berhasil',
-                                response: JSON.stringify({ status: true, message: "Pesan berhasil diantrekan", target: payload.target })
-                            });
-                            localStorage.setItem('db_log', JSON.stringify(logs));
-                            resolve({ success: true, api_response: "HTTP 200 OK - Sent (Simulated)" });
-                        }, 200);
-                    });
+                                kelas: payload.kelasName,
+                                grup: payload.targetName
+                            })
+                        });
+                        if (resp.ok) {
+                            const resJson = await resp.json();
+                            if (resJson && resJson.log) {
+                                if (!Array.isArray(app.state.log)) app.state.log = [];
+                                app.state.log.unshift(resJson.log);
+                                localStorage.setItem('db_log', JSON.stringify(app.state.log));
+                            }
+                            return resJson;
+                        }
+                    } catch(err) {
+                        console.warn('[SISKA] Gagal kirim WA via VPS:', err);
+                    }
+
+                    // Fallback jika VPS tidak dapat dijangkau
+                    const fallbackLog = {
+                        id_log: 'L' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                        tanggal: new Date().toLocaleString('id-ID'),
+                        jenis: payload.jenis,
+                        kelas: payload.kelasName || 'Semua Kelas',
+                        grup: payload.targetName,
+                        pesan: payload.message,
+                        status: 'Gagal (Koneksi offline)',
+                        response: JSON.stringify({ status: false, message: 'Tidak dapat terhubung ke server VPS' })
+                    };
+                    if (!Array.isArray(app.state.log)) app.state.log = [];
+                    app.state.log.unshift(fallbackLog);
+                    localStorage.setItem('db_log', JSON.stringify(app.state.log));
+                    return { success: false, log: fallbackLog };
                 }
             }
         };
@@ -2441,6 +2464,10 @@
                             if (json.settings && Object.keys(json.settings).length > 0) {
                                 this.state.setting = Object.assign(this.state.setting || {}, json.settings);
                                 localStorage.setItem('db_setting', JSON.stringify(this.state.setting));
+                            }
+                            if (json.log && Array.isArray(json.log)) {
+                                this.state.log = json.log;
+                                localStorage.setItem('db_log', JSON.stringify(json.log));
                             }
                             localStorage.setItem('db_siswa', JSON.stringify(this.state.siswa));
                             localStorage.setItem('db_kelas', JSON.stringify(this.state.kelas));
@@ -4516,6 +4543,52 @@
                         } catch(err) {
                             console.warn('[SISKA] Gagal push absen ke VPS:', err);
                         }
+
+                        // === KIRIM NOTIFIKASI WHATSAPP KE GRUP ORANG TUA SISWA ===
+                        const className = app.helper.getKelasName(classId);
+                        const targetGroup = (app.state.grupwa || []).find(g => (g.id_kelas === classId || g.kelas === classId) && (g.status === 'Aktif' || !g.status));
+                        const targetJid = targetGroup ? (targetGroup.jid || targetGroup.group_id) : '';
+                        const targetGroupName = targetGroup ? (targetGroup.nama || targetGroup.nama_group) : ('Grup ' + className);
+
+                        const footer = (app.state.setting && app.state.setting.wa_footer)
+                            ? app.state.setting.wa_footer
+                            : 'Hormat Kami, Admin SMP Negeri 1 Mirit';
+
+                        let waMessage = '';
+                        if (absentStudents.length === 0) {
+                            waMessage = `📢 *INFORMASI PRESENSI SISWA*\n───────────────────\n\nHari ini *${className}* Nihil berangkat semuanya.\n\n───────────────────\n_${footer}_`;
+                        } else {
+                            const statusGroups = {};
+                            absentStudents.forEach(st => {
+                                const s = (st.status || 'Tidak Hadir').toUpperCase();
+                                if (!statusGroups[s]) statusGroups[s] = [];
+                                statusGroups[s].push(st);
+                            });
+
+                            let detailsText = '';
+                            for (const [stName, stList] of Object.entries(statusGroups)) {
+                                let icon = '📌';
+                                if (stName.includes('SAKIT')) icon = '🤒';
+                                else if (stName.includes('IZIN')) icon = '📝';
+                                else if (stName.includes('ALPA') || stName.includes('TANPA')) icon = '⚠️';
+
+                                detailsText += `\n${icon} *${stName}:*\n`;
+                                stList.forEach((s, i) => {
+                                    detailsText += `  ${i + 1}. *${s.nama}* (NIS: ${s.nis || '-'})\n`;
+                                });
+                            }
+
+                            waMessage = `📢 *INFORMASI KETIDAKHADIRAN SISWA*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${className}*\n${detailsText}\n_Telah dilaporkan dan dicatat dalam sistem kehadiran digital._\n───────────────────\n_${footer}_`;
+                        }
+
+                        await WA_GATEWAY_SERVICE.sendMessage({
+                            target: targetJid || '-',
+                            targetName: targetGroupName,
+                            jenis: 'Ketidakhadiran',
+                            kelasName: className,
+                            message: waMessage
+                        });
+
                         result = { success: true };
                     }
 
@@ -4830,6 +4903,58 @@
                             }
                         }
                         localStorage.setItem('db_absen_sumatif', JSON.stringify(currentAbsen));
+
+                        // === KIRIM NOTIFIKASI WA ASESMEN SUMATIF ===
+                        const footer = (app.state.setting && app.state.setting.wa_footer)
+                            ? app.state.setting.wa_footer
+                            : 'Hormat Kami, Admin SMP Negeri 1 Mirit';
+
+                        if (classIdA) {
+                            const clsNameA = app.helper.getKelasName(classIdA);
+                            const grpA = (app.state.grupwa || []).find(g => (g.id_kelas === classIdA || g.kelas === classIdA) && (g.status === 'Aktif' || !g.status));
+                            const jidA = grpA ? (grpA.jid || grpA.group_id) : '';
+                            const grpNameA = grpA ? (grpA.nama || grpA.nama_group) : ('Grup ' + clsNameA);
+
+                            let msgA = '';
+                            if (absentA.length === 0) {
+                                msgA = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\nHari ini *${clsNameA}* (${kelompokA}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                            } else {
+                                let detA = absentA.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
+                                msgA = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameA}* (${kelompokA}) - ${ruang}\n\n*Ketidakhadiran:*\n${detA}\n\n───────────────────\n_${footer}_`;
+                            }
+
+                            await WA_GATEWAY_SERVICE.sendMessage({
+                                target: jidA || '-',
+                                targetName: grpNameA,
+                                jenis: 'Asesmen Sumatif',
+                                kelasName: clsNameA,
+                                message: msgA
+                            });
+                        }
+
+                        if (classIdB) {
+                            const clsNameB = app.helper.getKelasName(classIdB);
+                            const grpB = (app.state.grupwa || []).find(g => (g.id_kelas === classIdB || g.kelas === classIdB) && (g.status === 'Aktif' || !g.status));
+                            const jidB = grpB ? (grpB.jid || grpB.group_id) : '';
+                            const grpNameB = grpB ? (grpB.nama || grpB.nama_group) : ('Grup ' + clsNameB);
+
+                            let msgB = '';
+                            if (absentB.length === 0) {
+                                msgB = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\nHari ini *${clsNameB}* (${kelompokB}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                            } else {
+                                let detB = absentB.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
+                                msgB = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameB}* (${kelompokB}) - ${ruang}\n\n*Ketidakhadiran:*\n${detB}\n\n───────────────────\n_${footer}_`;
+                            }
+
+                            await WA_GATEWAY_SERVICE.sendMessage({
+                                target: jidB || '-',
+                                targetName: grpNameB,
+                                jenis: 'Asesmen Sumatif',
+                                kelasName: clsNameB,
+                                message: msgB
+                            });
+                        }
+
                         result = { success: true };
                     }
 
@@ -5144,6 +5269,58 @@
                             }
                         }
                         localStorage.setItem('db_absen_tka', JSON.stringify(currentAbsen));
+
+                        // === KIRIM NOTIFIKASI WA ASESMEN TKA ===
+                        const footer = (app.state.setting && app.state.setting.wa_footer)
+                            ? app.state.setting.wa_footer
+                            : 'Hormat Kami, Admin SMP Negeri 1 Mirit';
+
+                        if (classIdA) {
+                            const clsNameA = app.helper.getKelasName(classIdA);
+                            const grpA = (app.state.grupwa || []).find(g => (g.id_kelas === classIdA || g.kelas === classIdA) && (g.status === 'Aktif' || !g.status));
+                            const jidA = grpA ? (grpA.jid || grpA.group_id) : '';
+                            const grpNameA = grpA ? (grpA.nama || grpA.nama_group) : ('Grup ' + clsNameA);
+
+                            let msgA = '';
+                            if (absentA.length === 0) {
+                                msgA = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\nHari ini *${clsNameA}* (${kelompokA}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                            } else {
+                                let detA = absentA.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
+                                msgA = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameA}* (${kelompokA}) - ${ruang}\n\n*Ketidakhadiran:*\n${detA}\n\n───────────────────\n_${footer}_`;
+                            }
+
+                            await WA_GATEWAY_SERVICE.sendMessage({
+                                target: jidA || '-',
+                                targetName: grpNameA,
+                                jenis: 'Asesmen TKA',
+                                kelasName: clsNameA,
+                                message: msgA
+                            });
+                        }
+
+                        if (classIdB) {
+                            const clsNameB = app.helper.getKelasName(classIdB);
+                            const grpB = (app.state.grupwa || []).find(g => (g.id_kelas === classIdB || g.kelas === classIdB) && (g.status === 'Aktif' || !g.status));
+                            const jidB = grpB ? (grpB.jid || grpB.group_id) : '';
+                            const grpNameB = grpB ? (grpB.nama || grpB.nama_group) : ('Grup ' + clsNameB);
+
+                            let msgB = '';
+                            if (absentB.length === 0) {
+                                msgB = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\nHari ini *${clsNameB}* (${kelompokB}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                            } else {
+                                let detB = absentB.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
+                                msgB = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameB}* (${kelompokB}) - ${ruang}\n\n*Ketidakhadiran:*\n${detB}\n\n───────────────────\n_${footer}_`;
+                            }
+
+                            await WA_GATEWAY_SERVICE.sendMessage({
+                                target: jidB || '-',
+                                targetName: grpNameB,
+                                jenis: 'Asesmen TKA',
+                                kelasName: clsNameB,
+                                message: msgB
+                            });
+                        }
+
                         result = { success: true };
                     }
 
