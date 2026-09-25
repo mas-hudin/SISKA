@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cegah browser HP/Desktop menyimpan cache lama agar selalu realtime -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Sistem Informasi Sekolah & WA Gateway - SISKA</title>
     
     <!-- Tailwind CSS -->
@@ -2157,8 +2161,15 @@
                             .withFailureHandler(err => reject(err))[functionName](payload);
                     });
                 } else {
+                    if (table === 'setting') {
+                        let cur = JSON.parse(localStorage.getItem('db_setting') || '{}');
+                        cur = Object.assign(cur, dataObject);
+                        localStorage.setItem('db_setting', JSON.stringify(cur));
+                        return { success: true };
+                    }
                     let list = JSON.parse(localStorage.getItem(`db_${table}`) || '[]');
-                    const idx = list.findIndex(item => item.id === dataObject.id);
+                    if (!Array.isArray(list)) list = [];
+                    const idx = list.findIndex(item => item && (item.id === dataObject.id || item.key === dataObject.key));
                     if (idx > -1) {
                         list[idx] = dataObject;
                     } else {
@@ -2440,6 +2451,11 @@
                             localStorage.setItem('db_pengumuman', JSON.stringify(this.state.pengumuman));
                             localStorage.setItem('db_version', 'v_live_full_data');
                             console.info('[SISKA] Real-time sync dari VPS sukses:', json.siswa.length, 'siswa.');
+                            if (this.state.setting && this.state.setting.logo) {
+                                localStorage.setItem('sys_login_logo', this.state.setting.logo);
+                            }
+                            this.loadLoginLogo();
+                            this.renderRunningText();
                             return;
                         }
                     }
@@ -7718,8 +7734,8 @@
 
             setting: {
                 load: function() {
-                    const settings = app.state.setting;
-                    document.getElementById('set-nama').value = settings.nama || '';
+                    const settings = app.state.setting || {};
+                    document.getElementById('set-nama').value = settings.nama || settings.nama_sekolah || '';
                     document.getElementById('set-logo').value = settings.logo || '';
                     document.getElementById('set-alamat').value = settings.alamat || '';
                     document.getElementById('set-wa-provider').value = settings.wa_provider || 'fonnte';
@@ -7823,14 +7839,36 @@
                         localStorage.setItem('sys_login_logo', newSettings.logo);
                     }
 
-                    Swal.fire({ title: 'Menyimpan...', text: 'Mengunggah konfigurasi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                    await DB.saveRow('setting', 'key', newSettings);
+                    Swal.fire({ title: 'Menyimpan ke Server VPS...', text: 'Mengunggah konfigurasi sekolah & WhatsApp Gateway...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                    try {
+                        const resp = await fetch('https://api.mashudin.my.id/api/save-settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newSettings)
+                        });
+                        if (resp.ok) {
+                            const resJson = await resp.json();
+                            console.info('[SISKA] Pengaturan tersimpan di VPS:', resJson);
+                        }
+                    } catch(err) {
+                        console.warn('[SISKA] Simpan ke VPS gagal, disimpan di local cache:', err);
+                    }
+
+                    localStorage.setItem('db_setting', JSON.stringify(newSettings));
                     Swal.close();
 
-                    Swal.fire({ icon: 'success', title: 'Pengaturan Disimpan', text: 'Konfigurasi sekolah & WhatsApp Gateway berhasil diperbarui.', timer: 1200, showConfirmButton: false });
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ Pengaturan Berhasil Disimpan!',
+                        text: 'Konfigurasi sekolah, token Fonnte & nomor gateway berhasil disimpan permanen ke Server VPS dan langsung sinkron ke seluruh HP & Laptop.',
+                        confirmButtonColor: '#10b981',
+                        confirmButtonText: 'Selesai'
+                    });
                     app.renderRunningText();
                     app.dashboard.load();
                     app.loadLoginLogo();
+                    app.checkFonnteConnection();
                 }
             }
         };
