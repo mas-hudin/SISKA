@@ -5762,8 +5762,12 @@
                     const hasSign = kepsek || ttdUrl;
 
                     previewEl.innerHTML = `
-                        <div style="border:1.5px dashed #94a3b8;border-radius:4px;width:243px;height:153px;background:#fff;font-family:Segoe UI,sans-serif;display:flex;flex-direction:column;overflow:hidden;">
-                            <!-- Header berwarna -->
+                        <div style="position:relative;border:2px dashed #64748b;border-radius:6px;width:250px;padding:3px;background:#f8fafc;box-sizing:border-box;">
+                            <div style="position:absolute;top:-8px;right:8px;background:#fff;padding:0 4px;font-size:8px;font-weight:700;color:#475569;border:1px solid #cbd5e1;border-radius:3px;display:flex;align-items:center;gap:3px;">
+                                <i class="fa-solid fa-scissors" style="color:#0284c7;"></i> Panduan Gunting
+                            </div>
+                            <div style="border-radius:4px;width:100%;height:148px;background:#fff;font-family:Segoe UI,sans-serif;display:flex;flex-direction:column;overflow:hidden;border:1px solid #e2e8f0;">
+                                <!-- Header berwarna -->
                             <div style="background:${warna};color:${warnaTeks};display:flex;align-items:center;padding:2mm 2.5mm;gap:2mm;flex-shrink:0;">
                                 ${logoUrl ? `<img src="${logoUrl}" style="width:7mm;height:7mm;object-fit:contain;border-radius:2px;">` : `<div style="width:7mm;height:7mm;background:rgba(255,255,255,0.25);border-radius:2px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:5.5pt;">TKA</div>`}
                                 <div style="flex:1;min-width:0;">
@@ -5796,6 +5800,7 @@
                                     ${nipKepsek ? `<div style="font-size:4pt;color:#64748b;text-align:center;">${nipKepsek.substring(0,20)}</div>` : ''}
                                 </div>
                                 ` : ''}
+                            </div>
                             </div>
                         </div>
                     `;
@@ -6231,40 +6236,46 @@
                     const ttdUrl = cs.ttdUrl || '';
 
                     return `
-                        <div class="bg-white rounded-lg border-2 border-dashed border-slate-300 shadow-sm overflow-hidden" style="width:243px;height:153px;font-family:Segoe UI,sans-serif;font-size:8pt;display:flex;flex-direction:column;">
-                            <!-- Header berwarna -->
-                            <div style="background:${warna};color:${warnaTeks};display:flex;align-items:center;padding:2.5mm 3mm;gap:2mm;flex-shrink:0;">
-                                ${logoUrl ? `<img src="${logoUrl}" style="width:8mm;height:8mm;object-fit:contain;border-radius:2px;background:rgba(255,255,255,0.2);">` : `<div style="width:8mm;height:8mm;background:rgba(255,255,255,0.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:6pt;">TKA</div>`}
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${schoolName}</div>
-                                    <div style="font-size:5.5pt;font-weight:700;opacity:0.9;letter-spacing:0.3px;">${judul}</div>
-                                </div>
+                        <div class="relative p-1 bg-white rounded-xl border-2 border-dashed border-slate-400 hover:border-cyan-500 shadow-sm transition-all group" style="width:250px;box-sizing:border-box;">
+                            <!-- Panduan Gunting Label -->
+                            <div class="absolute -top-2.5 right-2 bg-white px-1.5 py-0.5 rounded border border-slate-300 text-[9px] font-bold text-slate-500 flex items-center gap-1 shadow-xs pointer-events-none">
+                                <i class="fa-solid fa-scissors text-slate-400 group-hover:text-cyan-600 transition-colors"></i> <span>Garis Gunting</span>
                             </div>
-                            <!-- Body -->
-                            <div style="display:flex;flex:1;padding:2mm 3mm;gap:2mm;min-height:0;">
-                                <!-- Kiri: Info siswa + barcode -->
-                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
-                                    <div style="display:flex;align-items:center;gap:1.5mm;">
-                                        <div style="width:9mm;height:9mm;border-radius:3px;background:#f1f5f9;border:1px solid #cbd5e1;font-weight:800;font-size:7pt;color:#334155;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${initial}</div>
-                                        <div style="min-width:0;">
-                                            <div style="font-size:7pt;font-weight:800;color:#0f172a;line-height:1.1;overflow:hidden;max-height:16pt;">${siswa.nama || '-'}</div>
-                                            <div style="font-size:6pt;color:#475569;">Kelas: <b>${className}</b>${tahunAjaran ? ` &nbsp;|&nbsp; ${tahunAjaran}` : ''}</div>
-                                            <div style="font-size:5.5pt;font-family:monospace;color:#64748b;">NIS: ${siswa.nis || '-'}</div>
-                                        </div>
+                            <div class="bg-white rounded-lg overflow-hidden border border-slate-200" style="width:100%;height:148px;font-family:Segoe UI,sans-serif;font-size:8pt;display:flex;flex-direction:column;">
+                                <!-- Header berwarna -->
+                                <div style="background:${warna};color:${warnaTeks};display:flex;align-items:center;padding:2mm 2.5mm;gap:1.5mm;flex-shrink:0;">
+                                    ${logoUrl ? `<img src="${logoUrl}" style="width:7.5mm;height:7.5mm;object-fit:contain;border-radius:2px;background:rgba(255,255,255,0.2);">` : `<div style="width:7.5mm;height:7.5mm;background:rgba(255,255,255,0.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:6pt;">TKA</div>`}
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-size:6.5pt;font-weight:800;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${schoolName}</div>
+                                        <div style="font-size:5.5pt;font-weight:700;opacity:0.9;letter-spacing:0.3px;">${judul}</div>
                                     </div>
-                                    <div style="text-align:center;">${barcodeSvg.replace('width="200"', 'width="140"')}</div>
-                                    ${footer ? `<div style="font-size:5pt;color:#94a3b8;text-align:center;font-style:italic;margin-top:0.5mm;">${footer}</div>` : ''}
                                 </div>
-                                ${(kepsek || ttdUrl) ? `
-                                <!-- Kanan: TTD KS -->
-                                <div style="width:22mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-left:1px dashed #e2e8f0;padding-left:2mm;flex-shrink:0;">
-                                    <div style="font-size:5pt;color:#64748b;text-align:center;margin-bottom:0.5mm;">Mengetahui,</div>
-                                    ${ttdUrl ? `<img src="${ttdUrl}" style="width:18mm;height:10mm;object-fit:contain;">` : `<div style="width:18mm;height:10mm;"></div>`}
-                                    <div style="border-top:1px solid #334155;width:18mm;margin-bottom:0.5mm;"></div>
-                                    <div style="font-size:5pt;font-weight:800;color:#0f172a;text-align:center;line-height:1.1;">${kepsek}</div>
-                                    ${nipKepsek ? `<div style="font-size:4.5pt;color:#64748b;text-align:center;">${nipKepsek}</div>` : ''}
+                                <!-- Body -->
+                                <div style="display:flex;flex:1;padding:2mm 2.5mm;gap:2mm;min-height:0;">
+                                    <!-- Kiri: Info siswa + barcode -->
+                                    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:1.5mm;">
+                                            <div style="width:8.5mm;height:8.5mm;border-radius:3px;background:#f1f5f9;border:1px solid #cbd5e1;font-weight:800;font-size:7pt;color:#334155;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${initial}</div>
+                                            <div style="min-width:0;">
+                                                <div style="font-size:7pt;font-weight:800;color:#0f172a;line-height:1.1;overflow:hidden;max-height:16pt;">${siswa.nama || '-'}</div>
+                                                <div style="font-size:6pt;color:#475569;">Kelas: <b>${className}</b>${tahunAjaran ? ` &nbsp;|&nbsp; ${tahunAjaran}` : ''}</div>
+                                                <div style="font-size:5.5pt;font-family:monospace;color:#64748b;">NIS: ${siswa.nis || '-'}</div>
+                                            </div>
+                                        </div>
+                                        <div style="text-align:center;">${barcodeSvg.replace('width="200"', 'width="140"')}</div>
+                                        ${footer ? `<div style="font-size:5pt;color:#94a3b8;text-align:center;font-style:italic;margin-top:0.5mm;">${footer}</div>` : ''}
+                                    </div>
+                                    ${(kepsek || ttdUrl) ? `
+                                    <!-- Kanan: TTD KS -->
+                                    <div style="width:20mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-left:1px dashed #e2e8f0;padding-left:1.5mm;flex-shrink:0;">
+                                        <div style="font-size:4.5pt;color:#64748b;text-align:center;margin-bottom:0.5mm;">Mengetahui,</div>
+                                        ${ttdUrl ? `<img src="${ttdUrl}" style="width:16mm;height:9mm;object-fit:contain;">` : `<div style="width:16mm;height:9mm;"></div>`}
+                                        <div style="border-top:1px solid #334155;width:16mm;margin-bottom:0.5mm;"></div>
+                                        <div style="font-size:4.5pt;font-weight:800;color:#0f172a;text-align:center;line-height:1.1;">${kepsek}</div>
+                                        ${nipKepsek ? `<div style="font-size:4pt;color:#64748b;text-align:center;">${nipKepsek}</div>` : ''}
+                                    </div>
+                                    ` : ''}
                                 </div>
-                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -6307,40 +6318,42 @@
                         const initial = (s.nama || 'S').substring(0, 2).toUpperCase();
 
                         cardsHtml += `
-                            <div class="card-item">
-                                <!-- Header -->
-                                <div class="card-header" style="background:${warna};color:${warnaTeks};">
-                                    ${logoUrl ? `<img src="${logoUrl}" class="card-logo">` : `<div class="card-logo-ph">TKA</div>`}
-                                    <div class="card-header-text">
-                                        <div class="card-school">${schoolName}</div>
-                                        <div class="card-title">${judul}</div>
-                                    </div>
-                                </div>
-                                <!-- Body -->
-                                <div class="card-body">
-                                    <!-- Kiri -->
-                                    <div class="card-left">
-                                        <div class="card-info-row">
-                                            <div class="card-avatar">${initial}</div>
-                                            <div class="card-info">
-                                                <div class="card-name">${s.nama}</div>
-                                                <div class="card-meta">Kelas: <b>${className}</b>${tahunAjaran ? ` &nbsp;|&nbsp; TA: ${tahunAjaran}` : ''}</div>
-                                                <div class="card-nis">NIS: ${s.nis || '-'}</div>
-                                            </div>
+                            <div class="card-cutter">
+                                <div class="card-inner">
+                                    <!-- Header -->
+                                    <div class="card-header" style="background:${warna};color:${warnaTeks};">
+                                        ${logoUrl ? `<img src="${logoUrl}" class="card-logo">` : `<div class="card-logo-ph">TKA</div>`}
+                                        <div class="card-header-text">
+                                            <div class="card-school">${schoolName}</div>
+                                            <div class="card-title">${judul}</div>
                                         </div>
-                                        <div class="card-barcode">${barcodeSvg}</div>
-                                        ${footer ? `<div class="card-footer">${footer}</div>` : ''}
                                     </div>
-                                    ${(kepsek || ttdUrl) ? `
-                                    <!-- Kanan: TTD -->
-                                    <div class="card-ttd">
-                                        <div class="ttd-label">Mengetahui,</div>
-                                        ${ttdUrl ? `<img src="${ttdUrl}" class="ttd-img">` : `<div class="ttd-space"></div>`}
-                                        <div class="ttd-line"></div>
-                                        <div class="ttd-name">${kepsek}</div>
-                                        ${nipKepsek ? `<div class="ttd-nip">${nipKepsek}</div>` : ''}
+                                    <!-- Body -->
+                                    <div class="card-body">
+                                        <!-- Kiri -->
+                                        <div class="card-left">
+                                            <div class="card-info-row">
+                                                <div class="card-avatar">${initial}</div>
+                                                <div class="card-info">
+                                                    <div class="card-name">${s.nama}</div>
+                                                    <div class="card-meta">Kelas: <b>${className}</b>${tahunAjaran ? ` &nbsp;|&nbsp; TA: ${tahunAjaran}` : ''}</div>
+                                                    <div class="card-nis">NIS: ${s.nis || '-'}</div>
+                                                </div>
+                                            </div>
+                                            <div class="card-barcode">${barcodeSvg}</div>
+                                            ${footer ? `<div class="card-footer">${footer}</div>` : ''}
+                                        </div>
+                                        ${(kepsek || ttdUrl) ? `
+                                        <!-- Kanan: TTD -->
+                                        <div class="card-ttd">
+                                            <div class="ttd-label">Mengetahui,</div>
+                                            ${ttdUrl ? `<img src="${ttdUrl}" class="ttd-img">` : `<div class="ttd-space"></div>`}
+                                            <div class="ttd-line"></div>
+                                            <div class="ttd-name">${kepsek}</div>
+                                            ${nipKepsek ? `<div class="ttd-nip">${nipKepsek}</div>` : ''}
+                                        </div>
+                                        ` : ''}
                                     </div>
-                                    ` : ''}
                                 </div>
                             </div>
                         `;
@@ -6365,15 +6378,36 @@
                                     gap: 5mm;
                                     justify-content: center;
                                 }
-                                .card-item {
-                                    width: 85.6mm;
+                                .card-cutter {
+                                    width: 86mm;
                                     height: 54mm;
-                                    border: 1.5px dashed #94a3b8;
+                                    border: 1.5px dashed #334155;
                                     border-radius: 4px;
-                                    overflow: hidden;
+                                    padding: 1.2mm;
+                                    background: #fff;
+                                    page-break-inside: avoid;
+                                    display: flex;
+                                    box-sizing: border-box;
+                                    position: relative;
+                                }
+                                .card-cutter::before {
+                                    content: "âœ‚";
+                                    position: absolute;
+                                    top: -3mm;
+                                    right: 3mm;
+                                    font-size: 8pt;
+                                    color: #475569;
+                                    background: #fff;
+                                    padding: 0 1mm;
+                                    line-height: 1;
+                                }
+                                .card-inner {
+                                    flex: 1;
                                     display: flex;
                                     flex-direction: column;
-                                    page-break-inside: avoid;
+                                    border-radius: 3px;
+                                    overflow: hidden;
+                                    border: 0.5px solid #cbd5e1;
                                     background: #fff;
                                 }
                                 .card-header {
@@ -6452,14 +6486,35 @@
                                 @page { size: A4 portrait; margin: 15mm; }
                                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
                                 body { display: flex; justify-content: center; align-items: flex-start; padding: 10mm; background: #fff; }
-                                .card-item {
-                                    width: 85.6mm;
+                                .card-cutter {
+                                    width: 86mm;
                                     height: 54mm;
-                                    border: 1.5px dashed #94a3b8;
+                                    border: 1.5px dashed #334155;
                                     border-radius: 4px;
-                                    overflow: hidden;
+                                    padding: 1.2mm;
+                                    background: #fff;
+                                    display: flex;
+                                    box-sizing: border-box;
+                                    position: relative;
+                                }
+                                .card-cutter::before {
+                                    content: "âœ‚";
+                                    position: absolute;
+                                    top: -3mm;
+                                    right: 3mm;
+                                    font-size: 8pt;
+                                    color: #475569;
+                                    background: #fff;
+                                    padding: 0 1mm;
+                                    line-height: 1;
+                                }
+                                .card-inner {
+                                    flex: 1;
                                     display: flex;
                                     flex-direction: column;
+                                    border-radius: 3px;
+                                    overflow: hidden;
+                                    border: 0.5px solid #cbd5e1;
                                     background: #fff;
                                 }
                                 .card-header {
@@ -6495,7 +6550,8 @@
                             </style>
                         </head>
                         <body>
-                            <div class="card-item">
+                            <div class="card-cutter">
+                                <div class="card-inner">
                                 <div class="card-header">
                                     ${logoUrl ? `<img src="${logoUrl}" class="card-logo">` : `<div class="card-logo-ph">TKA</div>`}
                                     <div style="flex:1;min-width:0;">
@@ -6525,6 +6581,7 @@
                                         ${nipKepsek ? `<div class="ttd-nip">${nipKepsek}</div>` : ''}
                                     </div>
                                     ` : ''}
+                                </div>
                                 </div>
                             </div>
                             ` + '<scr' + 'ipt>' + `
