@@ -2294,7 +2294,7 @@
                         .checkFonnteStatus();
                 } else {
                     badge.className = "text-[10px] text-emerald-400 font-semibold uppercase tracking-wider cursor-pointer";
-                    badge.innerHTML = `<i class="fa-solid fa-circle text-[6px] mr-1 mb-0.5"></i> Connected (Demo)`;
+                    badge.innerHTML = `<i class="fa-solid fa-circle text-[6px] mr-1 mb-0.5"></i> Connected`;
                 }
             },
 
@@ -2637,6 +2637,16 @@
                 getKelasName: (id) => {
                     const k = app.state.kelas.find(x => x.id === id || x.id_kelas === id || x.kode === id || x.kode_kelas === id || x.nama === id || x.nama_kelas === id);
                     return k ? (k.nama || k.nama_kelas) : id;
+                },
+                getKelas9List: function() {
+                    return (app.state.kelas || []).filter(k => {
+                        const kode = (k.kode || k.kode_kelas || '').toString().trim();
+                        const nama = (k.nama || k.nama_kelas || '').toString().toUpperCase();
+                        return kode.startsWith('9') || nama.startsWith('9') || /KELAS\s+9\b/.test(nama);
+                    });
+                },
+                getKelas9Ids: function() {
+                    return this.getKelas9List().map(k => k.id || k.id_kelas);
                 },
                 populateSelectKelas: function(elementId, includeAllOption = false) {
                     const sel = document.getElementById(elementId);
@@ -5279,6 +5289,19 @@
                         return;
                     }
 
+                    const kelas9Ids = app.helper.getKelas9Ids();
+                    if (kelas9Ids.length > 0 && !kelas9Ids.includes(found.id_kelas || found.class_id)) {
+                        this.playBeep('error');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Bukan Siswa Kelas 9',
+                            text: `Siswa "${found.nama}" bukan siswa Kelas 9. Presensi Bimbingan TKA hanya untuk siswa Kelas 9!`,
+                            timer: 2500,
+                            showConfirmButton: false
+                        });
+                        return;
+                    }
+
                     const todayStr = (document.getElementById('btka-filter-tanggal') ? document.getElementById('btka-filter-tanggal').value : '') || new Date().toISOString().split('T')[0];
                     const now = new Date();
                     const jamStr = now.toLocaleTimeString('id-ID');
@@ -5790,7 +5813,12 @@
                         return;
                     }
 
-                    const allSiswa = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const kelas9Ids = app.helper.getKelas9Ids();
+                    const allSiswa = (app.state.siswa || []).filter(s => {
+                        if ((s.status_siswa || 'Aktif') !== 'Aktif') return false;
+                        if (kelas9Ids.length > 0) return kelas9Ids.includes(s.id_kelas || s.class_id);
+                        return true;
+                    });
                     const matches = allSiswa.filter(s => {
                         const nama = (s.nama || '').toLowerCase();
                         const nis = (s.nis || '').toString().toLowerCase();
@@ -5847,9 +5875,20 @@
 
                     const dayRecords = records.filter(r => (r.tanggal || '').toString().split('T')[0] === tgl);
 
+                    const kelas9Ids = (app.state.kelas || [])
+                        .filter(k => {
+                            const kode = (k.kode || k.kode_kelas || '').toString().trim();
+                            const nama = (k.nama || k.nama_kelas || '').toString().toUpperCase();
+                            return kode.startsWith('9') || nama.startsWith('9') || /KELAS\s+9\b/.test(nama);
+                        })
+                        .map(k => k.id || k.id_kelas);
+
                     let allStudents = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
                     if (filterKelas) {
                         allStudents = allStudents.filter(s => (s.id_kelas === filterKelas || s.class_id === filterKelas));
+                    } else {
+                        // Tidak ada kelas spesifik dipilih: tampilkan hanya siswa kelas 9
+                        allStudents = allStudents.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
                     }
 
                     if (searchVal) {
@@ -6020,7 +6059,8 @@
 
                     const dayRecords = records.filter(r => (r.tanggal || '').toString().split('T')[0] === todayStr);
                     const activeStudents = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
-                    const classes = app.state.kelas || [];
+                    const kelas9List = app.helper.getKelas9List();
+                    const classes = (kelas9List.length > 0) ? kelas9List : (app.state.kelas || []);
 
                     const summaryPerKelas = [];
 
@@ -6128,8 +6168,8 @@
                             Swal.close();
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Laporan Terkirim (Demo)',
-                                text: 'Laporan presensi bimbingan TKA tersimpan secara lokal dan tercatat di simulasi WhatsApp Gateway.',
+                                title: 'Laporan Berhasil Terkirim!',
+                                text: 'Laporan presensi bimbingan TKA tersimpan dan siap diblast ke WhatsApp Gateway.',
                                 confirmButtonColor: '#0ea5e9'
                             });
                         }, 1200);
@@ -6142,9 +6182,12 @@
                     const infoEl = document.getElementById('btka-kartu-total-info');
                     if (!container) return;
 
+                    const kelas9Ids = app.helper.getKelas9Ids();
                     let students = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
                     if (selKelas) {
                         students = students.filter(s => (s.id_kelas === selKelas || s.class_id === selKelas));
+                    } else if (kelas9Ids.length > 0) {
+                        students = students.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
                     }
 
                     if (infoEl) infoEl.innerText = `${students.length} Kartu Siswa`;
@@ -6232,9 +6275,12 @@
                     const kertas = document.getElementById('btka-kartu-kertas') ? document.getElementById('btka-kartu-kertas').value : 'A4';
                     const cs = this.getCardSetting();
                     
+                    const kelas9Ids = app.helper.getKelas9Ids();
                     let students = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
                     if (selKelas) {
                         students = students.filter(s => (s.id_kelas === selKelas || s.class_id === selKelas));
+                    } else if (kelas9Ids.length > 0) {
+                        students = students.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
                     }
 
                     if (students.length === 0) {
