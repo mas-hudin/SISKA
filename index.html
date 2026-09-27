@@ -6372,18 +6372,33 @@
                                 }
                                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
                                 body { background: #fff; color: #0f172a; }
+                                .sheet-wrapper {
+                                    width: 172mm;
+                                    margin: 0 auto;
+                                }
+                                .cut-guide-notice {
+                                    text-align: center;
+                                    font-size: 7pt;
+                                    font-weight: bold;
+                                    color: #334155;
+                                    margin-bottom: 2mm;
+                                    letter-spacing: 0.3px;
+                                    border-bottom: 1px dashed #64748b;
+                                    padding-bottom: 1mm;
+                                }
                                 .grid-container {
                                     display: grid;
-                                    grid-template-columns: repeat(2, 85.6mm);
-                                    gap: 5mm;
+                                    grid-template-columns: repeat(2, 86mm);
+                                    gap: 0;
                                     justify-content: center;
+                                    border: 1.5px dashed #334155;
+                                    background: #fff;
                                 }
                                 .card-cutter {
                                     width: 86mm;
                                     height: 54mm;
-                                    border: 1.5px dashed #334155;
-                                    border-radius: 4px;
-                                    padding: 1.2mm;
+                                    border: 1px dashed #334155;
+                                    padding: 1.5mm;
                                     background: #fff;
                                     page-break-inside: avoid;
                                     display: flex;
@@ -6393,13 +6408,14 @@
                                 .card-cutter::before {
                                     content: "âœ‚";
                                     position: absolute;
-                                    top: -3mm;
-                                    right: 3mm;
-                                    font-size: 8pt;
-                                    color: #475569;
+                                    top: -2.8mm;
+                                    right: 2mm;
+                                    font-size: 7pt;
+                                    color: #334155;
                                     background: #fff;
-                                    padding: 0 1mm;
+                                    padding: 0 0.8mm;
                                     line-height: 1;
+                                    z-index: 2;
                                 }
                                 .card-inner {
                                     flex: 1;
@@ -6443,8 +6459,11 @@
                             </style>
                         </head>
                         <body>
-                            <div class="grid-container">
-                                ${cardsHtml}
+                            <div class="sheet-wrapper">
+                                <div class="cut-guide-notice">âœ‚ PANDUAN GUNTING: Garis putus-putus pembatas antar kartu adalah garis potong pemisah kartu</div>
+                                <div class="grid-container">
+                                    ${cardsHtml}
+                                </div>
                             </div>
                             ` + '<scr' + 'ipt>' + `
                                 window.onload = function() {
@@ -6684,8 +6703,14 @@
                     else if (this.currentMode === 'tka') { targetAbsenSource = app.state.absen_tka || []; modeTitleLabel = 'ASESMEN TKA'; }
                     else if (this.currentMode === 'btka') { targetAbsenSource = app.getBtkaAttendance(); modeTitleLabel = 'BIMBINGAN TKA'; }
 
+                    const isTkaOrBtka = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const kelas9Ids = app.helper.getKelas9Ids();
+
                     const listSiswa = app.state.siswa || [];
-                    const activeStudents = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    let activeStudents = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    if (isTkaOrBtka && kelas9Ids.length > 0) {
+                        activeStudents = activeStudents.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
+                    }
                     const activeSiswaCount = activeStudents.length;
                     let studentAbsenceDetails = [];
                     let totalSiswaHadir = 0;
@@ -6710,14 +6735,18 @@
                             }
                         });
                     } else {
-                        const listAbsenHari = (targetAbsenSource || []).filter(a => {
+                        let listAbsenHari = (targetAbsenSource || []).filter(a => {
                             const d = (a.tanggal || '').toString().trim().split('T')[0];
                             return d === dateVal && a.status !== 'Nihil' && a.status !== 'Hadir';
                         });
+                        if (isTkaOrBtka && kelas9Ids.length > 0) {
+                            listAbsenHari = listAbsenHari.filter(a => kelas9Ids.includes(a.id_kelas || a.class_id));
+                        }
                         listAbsenHari.forEach(a => {
                             const st = listSiswa.find(s => (s.id === a.id_siswa || s.id_siswa === a.id_siswa));
+                            if (isTkaOrBtka && st && kelas9Ids.length > 0 && !kelas9Ids.includes(st.id_kelas || st.class_id)) return;
                             const namaSiswa = st ? (st.nama || st.nama_siswa) : 'Siswa';
-                            const namaKelas = app.helper.getKelasName(a.id_kelas);
+                            const namaKelas = app.helper.getKelasName(a.id_kelas || (st ? (st.id_kelas || st.class_id) : ''));
                             let statusAbbr = 'S';
                             if (a.status === 'Izin') statusAbbr = 'I';
                             if (a.status === 'Alpa') statusAbbr = 'A';
@@ -6848,8 +6877,14 @@
                     else if (this.currentMode === 'tka') { targetAbsenSource = app.state.absen_tka || []; modeTitleLabel = 'ASESMEN TKA'; }
                     else if (this.currentMode === 'btka') { targetAbsenSource = app.getBtkaAttendance(); modeTitleLabel = 'BIMBINGAN TKA'; }
 
+                    const isTkaOrBtka = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const kelas9Ids = app.helper.getKelas9Ids();
+
                     const listSiswa = app.state.siswa || [];
-                    const activeStudents = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    let activeStudents = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    if (isTkaOrBtka && kelas9Ids.length > 0) {
+                        activeStudents = activeStudents.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
+                    }
                     const activeSiswaCount = activeStudents.length;
                     let studentAbsenceDetails = [];
                     let totalSiswaHadir = 0;
@@ -6874,14 +6909,18 @@
                             }
                         });
                     } else {
-                        const listAbsenHari = (targetAbsenSource || []).filter(a => {
+                        let listAbsenHari = (targetAbsenSource || []).filter(a => {
                             const d = (a.tanggal || '').toString().trim().split('T')[0];
                             return d === dateVal && a.status !== 'Nihil' && a.status !== 'Hadir';
                         });
+                        if (isTkaOrBtka && kelas9Ids.length > 0) {
+                            listAbsenHari = listAbsenHari.filter(a => kelas9Ids.includes(a.id_kelas || a.class_id));
+                        }
                         listAbsenHari.forEach(a => {
                             const st = listSiswa.find(s => (s.id === a.id_siswa || s.id_siswa === a.id_siswa));
+                            if (isTkaOrBtka && st && kelas9Ids.length > 0 && !kelas9Ids.includes(st.id_kelas || st.class_id)) return;
                             const namaSiswa = st ? (st.nama || st.nama_siswa) : 'Siswa';
-                            const namaKelas = app.helper.getKelasName(a.id_kelas);
+                            const namaKelas = app.helper.getKelasName(a.id_kelas || (st ? (st.id_kelas || st.class_id) : ''));
                             let statusAbbr = 'S';
                             if (a.status === 'Izin') statusAbbr = 'I';
                             if (a.status === 'Alpa') statusAbbr = 'A';
