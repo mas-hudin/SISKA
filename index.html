@@ -491,7 +491,7 @@
 
                         <div class="mt-8 pt-6 border-t border-gray-100">
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-slate-800 flex items-center">
+                                <h4 class="text-sm font-bold text-slate-800 flex items-center" id="dash-rekap-tabel-title">
                                     <i class="fa-solid fa-table-cells text-primary mr-2"></i> Rekapitulasi Kehadiran Seluruh Kelas Hari Ini
                                 </h4>
                                 <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">Geser ke kanan <i class="fa-solid fa-arrow-right ml-1"></i></span>
@@ -2723,12 +2723,55 @@
                         if (labelAlpa) labelAlpa.innerText = 'Alpa Hari Ini';
                     }
 
+                    const tableTitle = document.getElementById('dash-rekap-tabel-title');
+                    if (tableTitle) {
+                        if (mode === 'btka') {
+                            tableTitle.innerHTML = '<i class="fa-solid fa-table-cells text-cyan-600 mr-2"></i> Rekapitulasi Presensi Bimbingan TKA Seluruh Kelas 9 Hari Ini';
+                        } else if (mode === 'tka') {
+                            tableTitle.innerHTML = '<i class="fa-solid fa-table-cells text-emerald-600 mr-2"></i> Rekapitulasi Asesmen TKA Seluruh Kelas 9 Hari Ini';
+                        } else if (mode === 'sumatif') {
+                            tableTitle.innerHTML = '<i class="fa-solid fa-table-cells text-amber-600 mr-2"></i> Rekapitulasi Asesmen Sumatif Seluruh Kelas Hari Ini';
+                        } else {
+                            tableTitle.innerHTML = '<i class="fa-solid fa-table-cells text-primary mr-2"></i> Rekapitulasi Kehadiran Seluruh Kelas Hari Ini';
+                        }
+                    }
+
+                    const selChartKelas = document.getElementById('dash-chart-kelas-select');
+                    if (selChartKelas) {
+                        selChartKelas.innerHTML = '';
+                        if (mode === 'btka' || mode === 'tka') {
+                            const optAll = document.createElement('option');
+                            optAll.value = 'ALL';
+                            optAll.text = '-- SEMUA KELAS 9 (REKAP TKA) --';
+                            selChartKelas.appendChild(optAll);
+                            const kelas9List = app.helper.getKelas9List();
+                            kelas9List.forEach(k => {
+                                const opt = document.createElement('option');
+                                opt.value = k.id || k.id_kelas;
+                                opt.text = `${k.nama || k.nama_kelas} (${k.wali || k.wali_kelas})`;
+                                selChartKelas.appendChild(opt);
+                            });
+                        } else {
+                            app.helper.populateSelectKelas('dash-chart-kelas-select', true);
+                        }
+                        selChartKelas.value = 'ALL';
+                    }
+
                     this.load();
                 },
 
                 load: function() {
-                    const statsKelas = app.state.kelas.length;
-                    const statsSiswa = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif').length;
+                    const isTkaOrBtka = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const kelas9Ids = app.helper.getKelas9Ids();
+                    const kelas9List = app.helper.getKelas9List();
+
+                    let statsKelas = app.state.kelas.length;
+                    let statsSiswa = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif').length;
+
+                    if (isTkaOrBtka && kelas9Ids.length > 0) {
+                        statsKelas = kelas9List.length;
+                        statsSiswa = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif' && kelas9Ids.includes(s.id_kelas || s.class_id)).length;
+                    }
                     
                     const announcementLogs = app.state.log.filter(l => (l.jenis || '').includes('Pengumuman')).length;
                     const statsPengumuman = Math.max(announcementLogs, app.state.pengumuman ? app.state.pengumuman.length : 0);
@@ -2743,7 +2786,6 @@
                     if (this.currentMode === 'sumatif') targetAbsenSource = app.state.absen_sumatif || [];
                     if (this.currentMode === 'tka') targetAbsenSource = app.state.absen_tka || [];
                     if (this.currentMode === 'btka') targetAbsenSource = app.getBtkaAttendance();
-                    if (this.currentMode === 'btka') targetAbsenSource = app.getBtkaAttendance();
 
                     let sakit = 0, izin = 0, alpa = 0;
                     if (this.currentMode === 'btka') {
@@ -2752,17 +2794,23 @@
                             const t = a.tanggal.toString().trim().split('T')[0];
                             return t === todayString;
                         });
-                        const hadirCount = todayBtka.filter(a => a.status === 'Hadir').length;
-                        sakit = todayBtka.filter(a => a.status === 'Sakit').length;
-                        izin = todayBtka.filter(a => a.status === 'Izin').length;
-                        const expAlpa = todayBtka.filter(a => a.status === 'Alpa').length;
+                        const todayBtkaK9 = (kelas9Ids.length > 0)
+                            ? todayBtka.filter(a => kelas9Ids.includes(a.id_kelas || a.class_id))
+                            : todayBtka;
+                        const hadirCount = todayBtkaK9.filter(a => a.status === 'Hadir').length;
+                        sakit = todayBtkaK9.filter(a => a.status === 'Sakit').length;
+                        izin = todayBtkaK9.filter(a => a.status === 'Izin').length;
+                        const expAlpa = todayBtkaK9.filter(a => a.status === 'Alpa').length;
                         alpa = Math.max(expAlpa, statsSiswa - (hadirCount + sakit + izin));
                     } else {
-                        const listAbsen = targetAbsenSource.filter(a => {
+                        let listAbsen = targetAbsenSource.filter(a => {
                             if (!a.tanggal) return false;
                             const t = a.tanggal.toString().trim();
                             return t === todayString || t.startsWith(todayString);
                         });
+                        if (isTkaOrBtka && kelas9Ids.length > 0) {
+                            listAbsen = listAbsen.filter(a => kelas9Ids.includes(a.id_kelas || a.class_id));
+                        }
                         sakit = listAbsen.filter(a => a.status === 'Sakit').length;
                         izin = listAbsen.filter(a => a.status === 'Izin').length;
                         alpa = listAbsen.filter(a => a.status === 'Alpa').length;
@@ -2844,17 +2892,30 @@
                     const unabsentNotif = document.getElementById('dash-notif-unabsent');
                     const unabsentText = document.getElementById('dash-notif-unabsent-text');
 
-                    const activeStudents = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const isTkaOrBtka = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const kelas9Ids = app.helper.getKelas9Ids();
+
+                    let activeStudents = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    if (isTkaOrBtka && kelas9Ids.length > 0) {
+                        activeStudents = activeStudents.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
+                    }
 
                     if (selectedClassId === 'ALL') {
-                        document.getElementById('chart-class-title').innerText = `Rincian Kehadiran: Rekap Seluruh Kelas (${modeLabel})`;
+                        if (isTkaOrBtka) {
+                            document.getElementById('chart-class-title').innerText = `Rincian Kehadiran: Rekap Seluruh Kelas 9 (${modeLabel})`;
+                        } else {
+                            document.getElementById('chart-class-title').innerText = `Rincian Kehadiran: Rekap Seluruh Kelas (${modeLabel})`;
+                        }
                         if (unabsentNotif) unabsentNotif.classList.add('hidden');
 
                         totalSiswa = activeStudents.length;
-                        const todayAbsenceList = targetAbsenSource.filter(a => {
+                        let todayAbsenceList = targetAbsenSource.filter(a => {
                             const d = (a.tanggal || '').toString().trim().split('T')[0];
                             return d === todayStr;
                         });
+                        if (isTkaOrBtka && kelas9Ids.length > 0) {
+                            todayAbsenceList = todayAbsenceList.filter(a => kelas9Ids.includes(a.id_kelas || a.class_id));
+                        }
 
                         if (this.currentMode === 'btka') {
                             hadirCount = todayAbsenceList.filter(a => a.status === 'Hadir').length;
@@ -2974,8 +3035,16 @@
                     if (this.currentMode === 'tka') targetAbsenSource = app.state.absen_tka || [];
                     if (this.currentMode === 'btka') targetAbsenSource = app.getBtkaAttendance();
 
-                    const listKelas = app.state.kelas;
-                    const activeStudents = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const isTkaOrBtka = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const kelas9Ids = app.helper.getKelas9Ids();
+                    const kelas9List = app.helper.getKelas9List();
+
+                    let listKelas = app.state.kelas;
+                    let activeStudents = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    if (isTkaOrBtka && kelas9Ids.length > 0) {
+                        listKelas = kelas9List;
+                        activeStudents = activeStudents.filter(s => kelas9Ids.includes(s.id_kelas || s.class_id));
+                    }
 
                     if (listKelas.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">Belum ada data master kelas</td></tr>`;
