@@ -392,11 +392,11 @@
                     <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
                         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl"><i class="fa-solid fa-school"></i></div>
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Kelas</p><h3 class="text-lg font-bold text-slate-800" id="dash-total-kelas">0</h3></div>
+                            <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider" id="dash-label-total-kelas">Total Kelas</p><h3 class="text-lg font-bold text-slate-800" id="dash-total-kelas">0</h3></div>
                         </div>
                         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
                             <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-user-graduate"></i></div>
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Siswa Aktif</p><h3 class="text-lg font-bold text-slate-800" id="dash-total-siswa">0</h3></div>
+                            <div><p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider" id="dash-label-total-siswa">Siswa Aktif</p><h3 class="text-lg font-bold text-slate-800" id="dash-total-siswa">0</h3></div>
                         </div>
                         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
                             <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center text-xl"><i class="fa-solid fa-bullhorn"></i></div>
@@ -496,7 +496,7 @@
                         <div class="mt-8 pt-6 border-t border-gray-100">
                             <div class="flex items-center justify-between mb-4">
                                 <h4 class="text-sm font-bold text-slate-800 flex items-center">
-                                    <i class="fa-solid fa-table-cells text-primary mr-2"></i> Rekapitulasi Kehadiran Seluruh Kelas Hari Ini
+                                    <i class="fa-solid fa-table-cells text-primary mr-2"></i> <span id="dash-rekap-tabel-title">Rekapitulasi Kehadiran Seluruh Kelas Hari Ini</span>
                                 </h4>
                                 <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">Geser ke kanan <i class="fa-solid fa-arrow-right ml-1"></i></span>
                             </div>
@@ -2165,17 +2165,36 @@
                         let cur = JSON.parse(localStorage.getItem('db_setting') || '{}');
                         cur = Object.assign(cur, dataObject);
                         localStorage.setItem('db_setting', JSON.stringify(cur));
+                        try {
+                            await fetch('https://api.mashudin.my.id/api/save-settings', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(cur)
+                            });
+                        } catch(e){}
                         return { success: true };
                     }
                     let list = JSON.parse(localStorage.getItem(`db_${table}`) || '[]');
                     if (!Array.isArray(list)) list = [];
-                    const idx = list.findIndex(item => item && (item.id === dataObject.id || item.key === dataObject.key));
+                    const idx = list.findIndex(item => item && (item.id === dataObject.id || item.key === dataObject.key || item.id_kelas === dataObject.id_kelas || item.id_siswa === dataObject.id_siswa || item.id_group === dataObject.id_group));
                     if (idx > -1) {
-                        list[idx] = dataObject;
+                        list[idx] = Object.assign(list[idx], dataObject);
                     } else {
                         list.push(dataObject);
                     }
                     localStorage.setItem(`db_${table}`, JSON.stringify(list));
+
+                    // Push perubahan data ke server VPS realtime
+                    try {
+                        fetch('https://api.mashudin.my.id/api/save-row', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ table, idCol, data: dataObject })
+                        });
+                    } catch(err) {
+                        console.warn('[SISKA] Gagal sync saveRow ke VPS:', err);
+                    }
+
                     return { success: true };
                 }
             },
@@ -2194,8 +2213,20 @@
                     });
                 } else {
                     let list = JSON.parse(localStorage.getItem(`db_${table}`) || '[]');
-                    list = list.filter(item => item.id !== targetId && item.id_kelas !== targetId && item.id_siswa !== targetId && item.id_group !== targetId);
+                    list = list.filter(item => item && item.id !== targetId && item.id_kelas !== targetId && item.id_siswa !== targetId && item.id_group !== targetId);
                     localStorage.setItem(`db_${table}`, JSON.stringify(list));
+
+                    // Push penghapusan data ke server VPS realtime
+                    try {
+                        fetch('https://api.mashudin.my.id/api/delete-row', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ table, idCol, targetId })
+                        });
+                    } catch(err) {
+                        console.warn('[SISKA] Gagal sync deleteRow ke VPS:', err);
+                    }
+
                     return { success: true };
                 }
             }
@@ -2305,6 +2336,15 @@
                 if (astkaTgl) astkaTgl.value = _todayL;
                 const piketTglEl = document.getElementById('piket-filter-tanggal');
                 if (piketTglEl) piketTglEl.value = _todayL;
+
+                // Auto-sync realtime setiap 8 detik dari VPS tanpa perlu reload halaman
+                if (!window._siskaRealtimeSyncInterval) {
+                    window._siskaRealtimeSyncInterval = setInterval(() => {
+                        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                            app.syncWithDatabase(true);
+                        }
+                    }, 8000);
+                }
             },
 
             checkFonnteConnection: function() {
@@ -2451,7 +2491,44 @@
                 el.innerText = text;
             },
 
-            syncWithDatabase: async function() {
+            refreshActiveView: function() {
+                try {
+                    // Update tampilan modul aktif secara realtime tanpa reload
+                    const secDash = document.getElementById('sec-dashboard');
+                    if (secDash && !secDash.classList.contains('hidden') && this.dashboard && typeof this.dashboard.load === 'function') {
+                        this.dashboard.load();
+                    }
+                    const secAbs = document.getElementById('sec-absen');
+                    if (secAbs && !secAbs.classList.contains('hidden') && this.presensi && typeof this.presensi.loadSiswa === 'function') {
+                        this.presensi.loadSiswa();
+                    }
+                    const secSum = document.getElementById('sec-asesmen-sumatif');
+                    if (secSum && !secSum.classList.contains('hidden') && this.asSumatif) {
+                        if (typeof this.asSumatif.renderRekapRuangan === 'function') this.asSumatif.renderRekapRuangan();
+                        if (typeof this.asSumatif.loadSiswa === 'function') this.asSumatif.loadSiswa();
+                    }
+                    const secTka = document.getElementById('sec-asesmen-tka');
+                    if (secTka && !secTka.classList.contains('hidden') && this.asTka) {
+                        if (typeof this.asTka.renderRekapRuangan === 'function') this.asTka.renderRekapRuangan();
+                        if (typeof this.asTka.loadSiswa === 'function') this.asTka.loadSiswa();
+                    }
+                    const secBtka = document.getElementById('sec-bimbingan-tka');
+                    if (secBtka && !secBtka.classList.contains('hidden') && this.bimbinganTka) {
+                        if (typeof this.bimbinganTka.loadMonitoring === 'function') this.bimbinganTka.loadMonitoring();
+                        if (typeof this.bimbinganTka.renderStatsAndRecent === 'function') this.bimbinganTka.renderStatsAndRecent();
+                    }
+                    const secPiket = document.getElementById('sec-buku-piket');
+                    if (secPiket && !secPiket.classList.contains('hidden') && this.bukupiket && typeof this.bukupiket.loadByTanggal === 'function') {
+                        this.bukupiket.loadByTanggal();
+                    }
+                    const secLap = document.getElementById('sec-laporan');
+                    if (secLap && !secLap.classList.contains('hidden') && this.laporan && typeof this.laporan.update === 'function') {
+                        this.laporan.update();
+                    }
+                } catch(e) {}
+            },
+
+            syncWithDatabase: async function(silent = false) {
                 // === REALTIME SYNC DARI PUSAT DATABASE VPS (UNTUK HP & LAPTOP) ===
                 try {
                     const vpsRes = await fetch('https://api.mashudin.my.id/api/all-data');
@@ -2462,6 +2539,8 @@
                             this.state.kelas = json.kelas || [];
                             this.state.absen = json.absen || [];
                             this.state.absen_sumatif = json.sumatif || [];
+                            this.state.absen_tka = json.tka || [];
+                            this.state.absen_bimbingan_tka = json.bimbingan_tka || [];
                             this.state.gurupiket = json.gurupiket || [];
                             this.state.grupwa = json.grupwa || [];
                             this.state.pengumuman = json.pengumuman || [];
@@ -2477,21 +2556,27 @@
                             localStorage.setItem('db_kelas', JSON.stringify(this.state.kelas));
                             localStorage.setItem('db_absen', JSON.stringify(this.state.absen));
                             localStorage.setItem('db_absen_sumatif', JSON.stringify(this.state.absen_sumatif));
+                            localStorage.setItem('db_absen_tka', JSON.stringify(this.state.absen_tka));
+                            localStorage.setItem('db_btka_scans', JSON.stringify(this.state.absen_bimbingan_tka));
                             localStorage.setItem('db_gurupiket', JSON.stringify(this.state.gurupiket));
                             localStorage.setItem('db_grupwa', JSON.stringify(this.state.grupwa));
                             localStorage.setItem('db_pengumuman', JSON.stringify(this.state.pengumuman));
                             localStorage.setItem('db_version', 'v_live_full_data');
-                            console.info('[SISKA] Real-time sync dari VPS sukses:', json.siswa.length, 'siswa.');
+                            if (!silent) console.info('[SISKA] Real-time sync dari VPS sukses:', json.siswa.length, 'siswa.');
                             if (this.state.setting && this.state.setting.logo) {
                                 localStorage.setItem('sys_login_logo', this.state.setting.logo);
                             }
-                            this.loadLoginLogo();
-                            this.renderRunningText();
+                            if (!silent) {
+                                this.loadLoginLogo();
+                                this.renderRunningText();
+                            } else {
+                                this.refreshActiveView();
+                            }
                             return;
                         }
                     }
                 } catch(e) {
-                    console.warn('[SISKA] Gagal sync realtime dari VPS, menggunakan cache lokal:', e);
+                    if (!silent) console.warn('[SISKA] Gagal sync realtime dari VPS, menggunakan cache lokal:', e);
                 }
 
                 if (DB.isGAS) {
@@ -2759,6 +2844,32 @@
                     if (!d) return '';
                     return d.toString().trim().split(/[T ]/)[0];
                 },
+                isKelas9: function(k) {
+                    if (!k) return false;
+                    const kode = (k.kode || k.kode_kelas || '').toString().trim().toUpperCase();
+                    const nama = (k.nama || k.nama_kelas || '').toString().trim().toUpperCase();
+                    return kode.startsWith('9') || nama.includes('9') || nama.includes('IX');
+                },
+                getKelas9List: function() {
+                    const list = app.state.kelas || [];
+                    return list.filter(k => app.helper.isKelas9(k));
+                },
+                getKelas9Ids: function() {
+                    return new Set(app.helper.getKelas9List().map(k => k.id || k.id_kelas));
+                },
+                isSiswaKelas9: function(s) {
+                    if (!s) return false;
+                    const k9Ids = app.helper.getKelas9Ids();
+                    const cId = s.id_kelas || s.class_id;
+                    if (k9Ids.has(cId)) return true;
+                    const k = (app.state.kelas || []).find(x => x.id === cId || x.id_kelas === cId);
+                    return app.helper.isKelas9(k);
+                },
+                getSiswaKelas9List: function() {
+                    const list = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const k9Ids = app.helper.getKelas9Ids();
+                    return list.filter(s => k9Ids.has(s.id_kelas || s.class_id));
+                },
                 getSiswaName: function(idOrObj) {
                     if (!idOrObj) return 'Siswa';
                     if (typeof idOrObj === 'object') {
@@ -2785,24 +2896,29 @@
                     const k = (app.state.kelas || []).find(x => x.id === id || x.id_kelas === id || x.kode === id || x.kode_kelas === id || x.nama === id || x.nama_kelas === id);
                     return k ? (k.nama || k.nama_kelas) : (id || '-');
                 },
-                populateSelectKelas: function(elementId, includeAllOption = false) {
+                populateSelectKelas: function(elementId, includeAllOption = false, filterGrade9Only = false) {
                     const sel = document.getElementById(elementId);
                     if (!sel) return;
                     sel.innerHTML = '';
 
                     if (includeAllOption) {
                         const optAll = document.createElement('option');
-                        optAll.value = '';
-                        optAll.text = '-- SEMUA KELAS (REKAP SEKOLAH) --';
+                        optAll.value = filterGrade9Only ? 'ALL' : '';
+                        optAll.text = filterGrade9Only ? '-- SEMUA KELAS 9 (REKAP TKA) --' : '-- SEMUA KELAS (REKAP SEKOLAH) --';
                         sel.appendChild(optAll);
                     } else {
                         const firstOption = document.createElement('option');
                         firstOption.value = '';
-                        firstOption.text = '-- Pilih Kelas Terlebih Dahulu --';
+                        firstOption.text = filterGrade9Only ? '-- Pilih Kelas 9 Terlebih Dahulu --' : '-- Pilih Kelas Terlebih Dahulu --';
                         sel.appendChild(firstOption);
                     }
                     
-                    app.state.kelas.forEach(k => {
+                    let targetClasses = app.state.kelas || [];
+                    if (filterGrade9Only) {
+                        targetClasses = app.helper.getKelas9List();
+                    }
+
+                    targetClasses.forEach(k => {
                         const opt = document.createElement('option');
                         opt.value = k.id || k.id_kelas;
                         opt.text = `${k.nama || k.nama_kelas} (${k.wali || k.wali_kelas})`;
@@ -2837,6 +2953,7 @@
                     const labelSakit = document.getElementById('dash-label-sakit');
                     const labelIzin = document.getElementById('dash-label-izin');
                     const labelAlpa = document.getElementById('dash-label-alpa');
+                    const isTkaMode = (mode === 'tka' || mode === 'btka');
 
                     if (mode === 'sumatif') {
                         if (descEl) descEl.innerText = 'Menampilkan statistik kehadiran kegiatan Asesmen Sumatif hari ini.';
@@ -2844,12 +2961,12 @@
                         if (labelIzin) labelIzin.innerText = 'Izin (Sumatif)';
                         if (labelAlpa) labelAlpa.innerText = 'Alpa (Sumatif)';
                     } else if (mode === 'tka') {
-                        if (descEl) descEl.innerText = 'Menampilkan statistik kehadiran kegiatan Asesmen TKA hari ini.';
+                        if (descEl) descEl.innerText = 'Menampilkan statistik kehadiran kegiatan Asesmen TKA hari ini (Khusus Peserta Didik Kelas 9).';
                         if (labelSakit) labelSakit.innerText = 'Sakit (TKA)';
                         if (labelIzin) labelIzin.innerText = 'Izin (TKA)';
                         if (labelAlpa) labelAlpa.innerText = 'Alpa (TKA)';
                     } else if (mode === 'btka') {
-                        if (descEl) descEl.innerText = 'Menampilkan statistik kehadiran kegiatan Bimbingan TKA (Scan Barcode & Piket) hari ini.';
+                        if (descEl) descEl.innerText = 'Menampilkan statistik kehadiran kegiatan Bimbingan TKA (Scan Barcode & Piket) hari ini (Khusus Peserta Didik Kelas 9).';
                         if (labelSakit) labelSakit.innerText = 'Sakit (BTKA)';
                         if (labelIzin) labelIzin.innerText = 'Izin (BTKA)';
                         if (labelAlpa) labelAlpa.innerText = 'Alpa / Belum Scan';
@@ -2860,12 +2977,19 @@
                         if (labelAlpa) labelAlpa.innerText = 'Alpa Hari Ini';
                     }
 
+                    // Sesuaikan dropdown filter kelas pada chart: khusus Kelas 9 jika mode TKA / BTKA
+                    app.helper.populateSelectKelas('dash-chart-kelas-select', true, isTkaMode);
+
                     this.load();
                 },
 
                 load: function() {
-                    const statsKelas = app.state.kelas.length;
-                    const statsSiswa = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif').length;
+                    const isTkaMode = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const listKelas = isTkaMode ? app.helper.getKelas9List() : app.state.kelas;
+                    const activeStudents = isTkaMode ? app.helper.getSiswaKelas9List() : app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const statsKelas = listKelas.length;
+                    const statsSiswa = activeStudents.length;
+                    const k9Ids = isTkaMode ? app.helper.getKelas9Ids() : null;
                     
                     const announcementLogs = app.state.log.filter(l => (l.jenis || '').includes('Pengumuman')).length;
                     const statsPengumuman = Math.max(announcementLogs, app.state.pengumuman ? app.state.pengumuman.length : 0);
@@ -2880,14 +3004,13 @@
                     if (this.currentMode === 'sumatif') targetAbsenSource = app.state.absen_sumatif || [];
                     if (this.currentMode === 'tka') targetAbsenSource = app.state.absen_tka || [];
                     if (this.currentMode === 'btka') targetAbsenSource = app.getBtkaAttendance();
-                    if (this.currentMode === 'btka') targetAbsenSource = app.getBtkaAttendance();
 
                     let sakit = 0, izin = 0, alpa = 0;
                     if (this.currentMode === 'btka') {
                         const todayBtka = (targetAbsenSource || []).filter(a => {
                             if (!a.tanggal) return false;
-                            const t = a.tanggal.toString().trim().split('T')[0];
-                            return t === todayString;
+                            const t = app.helper.normalizeDate(a.tanggal);
+                            return t === todayString && k9Ids.has(a.id_kelas || a.class_id);
                         });
                         const hadirCount = todayBtka.filter(a => a.status === 'Hadir').length;
                         sakit = todayBtka.filter(a => a.status === 'Sakit').length;
@@ -2897,13 +3020,22 @@
                     } else {
                         const listAbsen = targetAbsenSource.filter(a => {
                             if (!a.tanggal) return false;
-                            const t = a.tanggal.toString().trim();
-                            return t === todayString || t.startsWith(todayString);
+                            const t = app.helper.normalizeDate(a.tanggal);
+                            if (t !== todayString) return false;
+                            if (isTkaMode && k9Ids) {
+                                return k9Ids.has(a.id_kelas || a.class_id);
+                            }
+                            return true;
                         });
                         sakit = listAbsen.filter(a => a.status === 'Sakit').length;
                         izin = listAbsen.filter(a => a.status === 'Izin').length;
                         alpa = listAbsen.filter(a => a.status === 'Alpa').length;
                     }
+
+                    const lblTotalKelas = document.getElementById('dash-label-total-kelas');
+                    if (lblTotalKelas) lblTotalKelas.innerText = isTkaMode ? 'Total Kelas 9' : 'Total Kelas';
+                    const lblTotalSiswa = document.getElementById('dash-label-total-siswa');
+                    if (lblTotalSiswa) lblTotalSiswa.innerText = isTkaMode ? 'Siswa Aktif (Kelas 9)' : 'Siswa Aktif';
 
                     document.getElementById('dash-total-kelas').innerText = statsKelas;
                     document.getElementById('dash-total-siswa').innerText = statsSiswa;
@@ -2981,16 +3113,22 @@
                     const unabsentNotif = document.getElementById('dash-notif-unabsent');
                     const unabsentText = document.getElementById('dash-notif-unabsent-text');
 
-                    const activeStudents = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const isTkaMode = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const k9Ids = isTkaMode ? app.helper.getKelas9Ids() : null;
+                    const activeStudents = isTkaMode ? app.helper.getSiswaKelas9List() : app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
 
-                    if (selectedClassId === 'ALL') {
-                        document.getElementById('chart-class-title').innerText = `Rincian Kehadiran: Rekap Seluruh Kelas (${modeLabel})`;
+                    if (selectedClassId === 'ALL' || selectedClassId === '') {
+                        document.getElementById('chart-class-title').innerText = isTkaMode ? `Rincian Kehadiran: Rekap Seluruh Kelas 9 (${modeLabel})` : `Rincian Kehadiran: Rekap Seluruh Kelas (${modeLabel})`;
                         if (unabsentNotif) unabsentNotif.classList.add('hidden');
 
                         totalSiswa = activeStudents.length;
                         const todayAbsenceList = targetAbsenSource.filter(a => {
-                            const d = (a.tanggal || '').toString().trim().split('T')[0];
-                            return d === todayStr;
+                            const d = app.helper.normalizeDate(a.tanggal);
+                            if (d !== todayStr) return false;
+                            if (isTkaMode && k9Ids) {
+                                return k9Ids.has(a.id_kelas || a.class_id);
+                            }
+                            return true;
                         });
 
                         if (this.currentMode === 'btka') {
@@ -3014,7 +3152,7 @@
                         totalSiswa = studentsInClass.length;
 
                         const todayAbsenceList = targetAbsenSource.filter(a => {
-                            const d = (a.tanggal || '').toString().trim().split('T')[0];
+                            const d = app.helper.normalizeDate(a.tanggal);
                             return ((a.id_kelas === selectedClassId || a.class_id === selectedClassId) && d === todayStr);
                         });
 
@@ -3111,8 +3249,14 @@
                     if (this.currentMode === 'tka') targetAbsenSource = app.state.absen_tka || [];
                     if (this.currentMode === 'btka') targetAbsenSource = app.getBtkaAttendance();
 
-                    const listKelas = app.state.kelas;
-                    const activeStudents = app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const isTkaMode = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const listKelas = isTkaMode ? app.helper.getKelas9List() : app.state.kelas;
+                    const activeStudents = isTkaMode ? app.helper.getSiswaKelas9List() : app.state.siswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+
+                    const tableTitle = document.getElementById('dash-rekap-tabel-title');
+                    if (tableTitle) {
+                        tableTitle.innerText = isTkaMode ? `Rekapitulasi Kehadiran Kelas 9 Hari Ini (${this.currentMode === 'btka' ? 'Presensi Bimbingan TKA' : 'Asesmen TKA'})` : 'Rekapitulasi Kehadiran Seluruh Kelas Hari Ini';
+                    }
 
                     if (listKelas.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">Belum ada data master kelas</td></tr>`;
@@ -3128,7 +3272,7 @@
                         let hadir = 0, sakit = 0, izin = 0, alpa = 0, nonHadir = 0;
                         if (this.currentMode === 'btka') {
                             const todayBtka = (targetAbsenSource || []).filter(a => {
-                                const d = (a.tanggal || '').toString().trim().split('T')[0];
+                                const d = app.helper.normalizeDate(a.tanggal);
                                 return ((a.id_kelas === classId || a.class_id === classId) && d === todayStr);
                             });
                             hadir = todayBtka.filter(a => a.status === 'Hadir').length;
@@ -3139,7 +3283,7 @@
                             nonHadir = sakit + izin + alpa;
                         } else {
                             const todayAbsenceList = targetAbsenSource.filter(a => {
-                                const d = (a.tanggal || '').toString().trim().split('T')[0];
+                                const d = app.helper.normalizeDate(a.tanggal);
                                 return (a.id_kelas === classId && d === todayStr);
                             });
                             sakit = todayAbsenceList.filter(a => a.status === 'Sakit').length;
@@ -4697,7 +4841,7 @@
                     if (!classId || !tanggalVal) return false;
                     const list = app.state.absen_sumatif || [];
                     return list.some(a => {
-                        const recDate = (a.tanggal || '').toString().trim().split('T')[0];
+                        const recDate = app.helper.normalizeDate(a.tanggal);
                         return (a.id_kelas === classId && (a.kelompok || '') === kelompok && recDate === tanggalVal);
                     });
                 },
@@ -4954,6 +5098,15 @@
                             }
                         }
                         localStorage.setItem('db_absen_sumatif', JSON.stringify(currentAbsen));
+                        try {
+                            await fetch('https://api.mashudin.my.id/api/save-sumatif', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        } catch(err) {
+                            console.warn('[SISKA] Gagal push sumatif ke VPS:', err);
+                        }
 
                         // === KIRIM NOTIFIKASI WA ASESMEN SUMATIF ===
                         const footer = (app.state.setting && app.state.setting.wa_footer)
@@ -5040,14 +5193,16 @@
                 init: function() {
                     const tglInput = document.getElementById('astka-tanggal');
                     if (tglInput && !tglInput.value) {
-                        tglInput.valueAsDate = new Date();
+                        const _n = new Date();
+                        tglInput.value = `${_n.getFullYear()}-${String(_n.getMonth() + 1).padStart(2, '0')}-${String(_n.getDate()).padStart(2, '0')}`;
                     }
-                    app.helper.populateSelectKelas('astka-kelas-a');
+                    // Hanya tampilkan kelas 9 untuk Asesmen TKA
+                    app.helper.populateSelectKelas('astka-kelas-a', false, true);
                     
                     const selB = document.getElementById('astka-kelas-b');
                     if (selB) {
                         selB.innerHTML = '<option value="">-- Tanpa Kelas Campuran --</option>';
-                        app.state.kelas.forEach(k => {
+                        app.helper.getKelas9List().forEach(k => {
                             const opt = document.createElement('option');
                             opt.value = k.id || k.id_kelas;
                             opt.text = `${k.nama || k.nama_kelas} (${k.wali || k.wali_kelas})`;
@@ -5147,7 +5302,7 @@
 
                     const listTKA = (app.state.absen_tka || []).filter(a => {
                         if (!a.tanggal) return false;
-                        const t = a.tanggal.toString().trim().split('T')[0];
+                        const t = app.helper.normalizeDate(a.tanggal);
                         return t === tanggalVal;
                     });
 
@@ -5320,6 +5475,15 @@
                             }
                         }
                         localStorage.setItem('db_absen_tka', JSON.stringify(currentAbsen));
+                        try {
+                            await fetch('https://api.mashudin.my.id/api/save-tka', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        } catch(err) {
+                            console.warn('[SISKA] Gagal push TKA ke VPS:', err);
+                        }
 
                         // === KIRIM NOTIFIKASI WA ASESMEN TKA ===
                         const footer = (app.state.setting && app.state.setting.wa_footer)
@@ -5481,13 +5645,15 @@
                 },
 
                 init: function() {
-                    const todayStr = new Date().toISOString().split('T')[0];
+                    const _nowBt = new Date();
+                    const todayStr = `${_nowBt.getFullYear()}-${String(_nowBt.getMonth() + 1).padStart(2, '0')}-${String(_nowBt.getDate()).padStart(2, '0')}`;
                     const tglInput = document.getElementById('btka-filter-tanggal');
                     if (tglInput && !tglInput.value) {
                         tglInput.value = todayStr;
                     }
-                    app.helper.populateSelectKelas('btka-filter-kelas');
-                    app.helper.populateSelectKelas('btka-kartu-kelas');
+                    // Hanya tampilkan kelas 9 untuk Bimbingan TKA
+                    app.helper.populateSelectKelas('btka-filter-kelas', true, true);
+                    app.helper.populateSelectKelas('btka-kartu-kelas', true, true);
                     
                     this.loadData();
                     this.switchTab(this.activeTab || 'tab-btka-scan');
@@ -5700,6 +5866,19 @@
 
                     records.push(newRecord);
                     localStorage.setItem('db_btka_scans', JSON.stringify(records));
+                    if (!Array.isArray(app.state.absen_bimbingan_tka)) app.state.absen_bimbingan_tka = [];
+                    app.state.absen_bimbingan_tka.push(newRecord);
+
+                    // Push scan bimbingan TKA ke server VPS realtime
+                    try {
+                        fetch('https://api.mashudin.my.id/api/save-btka', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ record: newRecord })
+                        });
+                    } catch(err) {
+                        console.warn('[SISKA] Gagal push scan BTKA ke VPS:', err);
+                    }
 
                     this.playBeep('success');
                     this.showInstantPopup(found, jamStr, className);
@@ -6222,8 +6401,9 @@
 
                     const dayRecords = records.filter(r => (r.tanggal || '').toString().split('T')[0] === tgl);
 
-                    let allStudents = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
-                    if (filterKelas) {
+                    const k9Ids = app.helper.getKelas9Ids();
+                    let allStudents = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif' && k9Ids.has(s.id_kelas || s.class_id));
+                    if (filterKelas && filterKelas !== 'ALL') {
                         allStudents = allStudents.filter(s => (s.id_kelas === filterKelas || s.class_id === filterKelas));
                     }
 
@@ -6334,6 +6514,19 @@
                     }
 
                     localStorage.setItem('db_btka_scans', JSON.stringify(records));
+                    app.state.absen_bimbingan_tka = records;
+
+                    // Push status update bimbingan TKA ke server VPS realtime
+                    try {
+                        const targetRec = records[existingIdx > -1 ? existingIdx : records.length - 1];
+                        fetch('https://api.mashudin.my.id/api/save-btka', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ record: targetRec })
+                        });
+                    } catch(err) {
+                        console.warn('[SISKA] Gagal push update status BTKA ke VPS:', err);
+                    }
                     this.loadMonitoring();
                     this.renderStatsAndRecent();
                     if (app.dashboard && typeof app.dashboard.load === 'function') app.dashboard.load();
@@ -6517,8 +6710,9 @@
                     const infoEl = document.getElementById('btka-kartu-total-info');
                     if (!container) return;
 
-                    let students = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
-                    if (selKelas) {
+                    const k9Ids = app.helper.getKelas9Ids();
+                    let students = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif' && k9Ids.has(s.id_kelas || s.class_id));
+                    if (selKelas && selKelas !== 'ALL') {
                         students = students.filter(s => (s.id_kelas === selKelas || s.class_id === selKelas));
                     }
 
@@ -6563,7 +6757,10 @@
                     const ttdUrl = cs.ttdUrl || '';
 
                     return `
-                        <div class="bg-white rounded-lg border-2 border-dashed border-slate-300 shadow-sm overflow-hidden" style="width:243px;height:153px;font-family:Segoe UI,sans-serif;font-size:8pt;display:flex;flex-direction:column;">
+                        <div class="bg-white rounded-none border-2 border-dashed border-slate-400 shadow-xs overflow-hidden" style="width:243px;height:158px;font-family:Segoe UI,sans-serif;font-size:8pt;display:flex;flex-direction:column;position:relative;">
+                            <div style="background:#f8fafc;color:#64748b;font-size:5.5pt;font-family:monospace;text-align:center;padding:1px 0;border-bottom:1px dashed #cbd5e1;letter-spacing:0.5px;flex-shrink:0;">
+                                ✂ - - - - - BATAS GARIS GUNTING - - - - - ✂
+                            </div>
                             <!-- Header berwarna -->
                             <div style="background:${warna};color:${warnaTeks};display:flex;align-items:center;padding:2.5mm 3mm;gap:2mm;flex-shrink:0;">
                                 ${logoUrl ? `<img src="${logoUrl}" style="width:8mm;height:8mm;object-fit:contain;border-radius:2px;background:rgba(255,255,255,0.2);">` : `<div style="width:8mm;height:8mm;background:rgba(255,255,255,0.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:6pt;">TKA</div>`}
@@ -6607,13 +6804,14 @@
                     const kertas = document.getElementById('btka-kartu-kertas') ? document.getElementById('btka-kartu-kertas').value : 'A4';
                     const cs = this.getCardSetting();
                     
-                    let students = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
-                    if (selKelas) {
+                    const k9Ids = app.helper.getKelas9Ids();
+                    let students = (app.state.siswa || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif' && k9Ids.has(s.id_kelas || s.class_id));
+                    if (selKelas && selKelas !== 'ALL') {
                         students = students.filter(s => (s.id_kelas === selKelas || s.class_id === selKelas));
                     }
 
                     if (students.length === 0) {
-                        Swal.fire({ icon: 'warning', title: 'Data Kosong', text: 'Tidak ada kartu siswa untuk dicetak.' });
+                        Swal.fire({ icon: 'warning', title: 'Data Kosong', text: 'Tidak ada kartu siswa Kelas 9 aktif untuk dicetak.' });
                         return;
                     }
 
@@ -6628,52 +6826,72 @@
                     const footer = cs.footer || '';
                     const ttdUrl = cs.ttdUrl || '';
                     const pageSize = (kertas === 'F4') ? '215mm 330mm' : 'A4 portrait';
+                    const cardsPerPage = (kertas === 'F4') ? 10 : 8;
 
-                    let cardsHtml = '';
-                    students.forEach((s) => {
-                        const className = app.helper.getKelasName(s.id_kelas || s.class_id);
-                        const barcodeSvg = this.generateBarcodeSvg(s.nis || s.id || s.id_siswa, 34);
-                        const initial = (s.nama || 'S').substring(0, 2).toUpperCase();
+                    let pagesHtml = '';
+                    for (let i = 0; i < students.length; i += cardsPerPage) {
+                        const pageStudents = students.slice(i, i + cardsPerPage);
+                        let pageCardsHtml = '';
 
-                        cardsHtml += `
-                            <div class="card-item">
-                                <!-- Header -->
-                                <div class="card-header" style="background:${warna};color:${warnaTeks};">
-                                    ${logoUrl ? `<img src="${logoUrl}" class="card-logo">` : `<div class="card-logo-ph">TKA</div>`}
-                                    <div class="card-header-text">
-                                        <div class="card-school">${schoolName}</div>
-                                        <div class="card-title">${judul}</div>
+                        pageStudents.forEach((s) => {
+                            const className = app.helper.getKelasName(s.id_kelas || s.class_id);
+                            const barcodeSvg = this.generateBarcodeSvg(s.nis || s.id || s.id_siswa, 34);
+                            const initial = (s.nama || 'S').substring(0, 2).toUpperCase();
+
+                            pageCardsHtml += `
+                                <div class="card-item">
+                                    <!-- Header -->
+                                    <div class="card-header" style="background:${warna};color:${warnaTeks};">
+                                        ${logoUrl ? `<img src="${logoUrl}" class="card-logo">` : `<div class="card-logo-ph">TKA</div>`}
+                                        <div class="card-header-text">
+                                            <div class="card-school">${schoolName}</div>
+                                            <div class="card-title">${judul}</div>
+                                        </div>
+                                    </div>
+                                    <!-- Body -->
+                                    <div class="card-body">
+                                        <!-- Kiri -->
+                                        <div class="card-left">
+                                            <div class="card-info-row">
+                                                <div class="card-avatar">${initial}</div>
+                                                <div class="card-info">
+                                                    <div class="card-name">${s.nama}</div>
+                                                    <div class="card-meta">Kelas: <b>${className}</b>${tahunAjaran ? ` &nbsp;|&nbsp; TA: ${tahunAjaran}` : ''}</div>
+                                                    <div class="card-nis">NIS: ${s.nis || '-'}</div>
+                                                </div>
+                                            </div>
+                                            <div class="card-barcode">${barcodeSvg}</div>
+                                            ${footer ? `<div class="card-footer">${footer}</div>` : ''}
+                                        </div>
+                                        ${(kepsek || ttdUrl) ? `
+                                        <!-- Kanan: TTD -->
+                                        <div class="card-ttd">
+                                            <div class="ttd-label">Mengetahui,</div>
+                                            ${ttdUrl ? `<img src="${ttdUrl}" class="ttd-img">` : `<div class="ttd-space"></div>`}
+                                            <div class="ttd-line"></div>
+                                            <div class="ttd-name">${kepsek}</div>
+                                            ${nipKepsek ? `<div class="ttd-nip">${nipKepsek}</div>` : ''}
+                                        </div>
+                                        ` : ''}
                                     </div>
                                 </div>
-                                <!-- Body -->
-                                <div class="card-body">
-                                    <!-- Kiri -->
-                                    <div class="card-left">
-                                        <div class="card-info-row">
-                                            <div class="card-avatar">${initial}</div>
-                                            <div class="card-info">
-                                                <div class="card-name">${s.nama}</div>
-                                                <div class="card-meta">Kelas: <b>${className}</b>${tahunAjaran ? ` &nbsp;|&nbsp; TA: ${tahunAjaran}` : ''}</div>
-                                                <div class="card-nis">NIS: ${s.nis || '-'}</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-barcode">${barcodeSvg}</div>
-                                        ${footer ? `<div class="card-footer">${footer}</div>` : ''}
-                                    </div>
-                                    ${(kepsek || ttdUrl) ? `
-                                    <!-- Kanan: TTD -->
-                                    <div class="card-ttd">
-                                        <div class="ttd-label">Mengetahui,</div>
-                                        ${ttdUrl ? `<img src="${ttdUrl}" class="ttd-img">` : `<div class="ttd-space"></div>`}
-                                        <div class="ttd-line"></div>
-                                        <div class="ttd-name">${kepsek}</div>
-                                        ${nipKepsek ? `<div class="ttd-nip">${nipKepsek}</div>` : ''}
-                                    </div>
-                                    ` : ''}
+                            `;
+                        });
+
+                        pagesHtml += `
+                            <div class="page-sheet">
+                                <div class="cut-guide-banner">
+                                    <span>✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - GARIS PANDUAN GUNTING POTONG KARTU - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ✂</span>
+                                </div>
+                                <div class="cutting-grid">
+                                    ${pageCardsHtml}
+                                </div>
+                                <div class="cut-guide-bottom">
+                                    <span>✂ Garis Putus-Putus Lurus Panjang Antar Kartu untuk Memudahkan Pemotongan dengan Gunting / Cutter ✂</span>
                                 </div>
                             </div>
                         `;
-                    });
+                    }
 
                     const printWin = window.open('', '_blank');
                     printWin.document.write(`
@@ -6684,26 +6902,62 @@
                             <style>
                                 @page {
                                     size: ${pageSize};
-                                    margin: 8mm;
+                                    margin: 6mm 8mm;
                                 }
                                 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
                                 body { background: #fff; color: #0f172a; }
-                                .grid-container {
+                                .page-sheet {
+                                    page-break-after: always;
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    justify-content: flex-start;
+                                    padding-top: 1mm;
+                                    margin-bottom: 6mm;
+                                }
+                                .page-sheet:last-child {
+                                    page-break-after: avoid;
+                                    margin-bottom: 0;
+                                }
+                                .cut-guide-banner {
+                                    width: 171.2mm;
+                                    text-align: center;
+                                    font-size: 6pt;
+                                    font-family: monospace;
+                                    font-weight: 700;
+                                    color: #475569;
+                                    margin-bottom: 1mm;
+                                    letter-spacing: 0.3px;
+                                }
+                                .cut-guide-bottom {
+                                    width: 171.2mm;
+                                    text-align: center;
+                                    font-size: 5.5pt;
+                                    font-family: monospace;
+                                    color: #64748b;
+                                    margin-top: 1mm;
+                                }
+                                /* Grid pemotongan dengan batas garis putus-putus lurus panjang antar kartu */
+                                .cutting-grid {
+                                    width: 171.2mm;
                                     display: grid;
-                                    grid-template-columns: repeat(2, 85.6mm);
-                                    gap: 5mm;
-                                    justify-content: center;
+                                    grid-template-columns: 85.6mm 85.6mm;
+                                    border-top: 1.5px dashed #475569;
+                                    border-left: 1.5px dashed #475569;
+                                    background: #fff;
                                 }
                                 .card-item {
                                     width: 85.6mm;
                                     height: 54mm;
-                                    border: 1.5px dashed #94a3b8;
-                                    border-radius: 4px;
+                                    border-right: 1.5px dashed #475569;
+                                    border-bottom: 1.5px dashed #475569;
+                                    border-radius: 0;
                                     overflow: hidden;
                                     display: flex;
                                     flex-direction: column;
                                     page-break-inside: avoid;
                                     background: #fff;
+                                    box-sizing: border-box;
                                 }
                                 .card-header {
                                     display: flex;
@@ -6738,9 +6992,7 @@
                             </style>
                         </head>
                         <body>
-                            <div class="grid-container">
-                                ${cardsHtml}
-                            </div>
+                            ${pagesHtml}
                             ` + '<scr' + 'ipt>' + `
                                 window.onload = function() {
                                     setTimeout(() => { window.print(); }, 500);
@@ -6962,7 +7214,9 @@
                     else if (this.currentMode === 'btka') { targetAbsenSource = app.getBtkaAttendance(); modeTitleLabel = 'BIMBINGAN TKA'; }
 
                     const listSiswa = app.state.siswa || [];
-                    const activeStudents = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const isTkaMode = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const k9Ids = app.helper.getKelas9Ids();
+                    const activeStudents = isTkaMode ? app.helper.getSiswaKelas9List() : listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
                     const activeSiswaCount = activeStudents.length;
                     let studentAbsenceDetails = [];
                     let totalSiswaHadir = 0;
@@ -6988,8 +7242,13 @@
                         });
                     } else {
                         const listAbsenHari = (targetAbsenSource || []).filter(a => {
-                            const d = (a.tanggal || '').toString().trim().split(/[T ]/)[0];
-                            return d === dateVal && a.status !== 'Nihil' && a.status !== 'Hadir';
+                            const d = app.helper.normalizeDate(a.tanggal);
+                            const match = (d === dateVal && a.status !== 'Nihil' && a.status !== 'Hadir');
+                            if (!match) return false;
+                            if (isTkaMode) {
+                                return k9Ids.has(a.id_kelas || a.class_id);
+                            }
+                            return true;
                         });
                         listAbsenHari.forEach(a => {
                             const st = listSiswa.find(s => (s.id === a.id_siswa || s.id_siswa === a.id_siswa || (s.nis && s.nis === a.id_siswa)));
@@ -7075,7 +7334,7 @@
                                     <span>PRESENTASE KEHADIRAN =</span>
                                     <div class="inline-flex flex-col items-center text-center">
                                         <span class="border-b border-slate-900 px-2 pb-0.5">JUMLAH SISWA YANG HADIR</span>
-                                        <span class="pt-0.5">JUMLAH SISWA SELURUHNYA</span>
+                                        <span class="pt-0.5">${isTkaMode ? 'JUMLAH SISWA KELAS 9' : 'JUMLAH SISWA SELURUHNYA'}</span>
                                     </div>
                                     <span>&times; 100%</span>
                                 </div>
@@ -7125,8 +7384,10 @@
                     else if (this.currentMode === 'tka') { targetAbsenSource = app.state.absen_tka || []; modeTitleLabel = 'ASESMEN TKA'; }
                     else if (this.currentMode === 'btka') { targetAbsenSource = app.getBtkaAttendance(); modeTitleLabel = 'BIMBINGAN TKA'; }
 
+                    const isTkaMode = (this.currentMode === 'tka' || this.currentMode === 'btka');
+                    const k9Ids = app.helper.getKelas9Ids();
                     const listSiswa = app.state.siswa || [];
-                    const activeStudents = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                    const activeStudents = isTkaMode ? app.helper.getSiswaKelas9List() : listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
                     const activeSiswaCount = activeStudents.length;
                     let studentAbsenceDetails = [];
                     let totalSiswaHadir = 0;
@@ -7152,8 +7413,13 @@
                         });
                     } else {
                         const listAbsenHari = (targetAbsenSource || []).filter(a => {
-                            const d = (a.tanggal || '').toString().trim().split(/[T ]/)[0];
-                            return d === dateVal && a.status !== 'Nihil' && a.status !== 'Hadir';
+                            const d = app.helper.normalizeDate(a.tanggal);
+                            const match = (d === dateVal && a.status !== 'Nihil' && a.status !== 'Hadir');
+                            if (!match) return false;
+                            if (isTkaMode) {
+                                return k9Ids.has(a.id_kelas || a.class_id);
+                            }
+                            return true;
                         });
                         listAbsenHari.forEach(a => {
                             const st = listSiswa.find(s => (s.id === a.id_siswa || s.id_siswa === a.id_siswa || (s.nis && s.nis === a.id_siswa)));
@@ -7257,7 +7523,7 @@
                                         <span>PRESENTASE KEHADIRAN =</span>
                                         <div class="frac">
                                             <span class="frac-top">JUMLAH SISWA YANG HADIR</span>
-                                            <span class="frac-bottom">JUMLAH SISWA SELURUHNYA</span>
+                                            <span class="frac-bottom">${isTkaMode ? 'JUMLAH SISWA KELAS 9' : 'JUMLAH SISWA SELURUHNYA'}</span>
                                         </div>
                                         <span>&times; 100%</span>
                                     </div>
@@ -7391,6 +7657,8 @@
 
                 setAbsenMode: function(mode) {
                     this.sourceMode = mode;
+                    const isTka = (mode === 'tka' || mode === 'btka');
+                    app.helper.populateSelectKelas('lap-kelas', true, isTka);
                     const buttons = {
                         'reguler': document.getElementById('btn-lap-mode-reguler'),
                         'sumatif': document.getElementById('btn-lap-mode-sumatif'),
@@ -7457,11 +7725,16 @@
                         modeTitle = 'Presensi Bimbingan TKA';
                     }
                     const isAsesmen = (this.sourceMode === 'sumatif' || this.sourceMode === 'tka' || this.sourceMode === 'btka');
+                    const isTka = (this.sourceMode === 'tka' || this.sourceMode === 'btka');
+                    const k9Ids = app.helper.getKelas9Ids();
 
                     const listSiswa = app.state.siswa || [];
                     
                     let filtered = listAbsen.filter(a => a.status !== 'Nihil' && a.status !== 'Hadir');
-                    if (kelasId) {
+                    if (isTka) {
+                        filtered = filtered.filter(a => k9Ids.has(a.id_kelas || a.class_id));
+                    }
+                    if (kelasId && kelasId !== 'ALL') {
                         filtered = filtered.filter(a => a.id_kelas === kelasId);
                     }
 
@@ -7602,8 +7875,8 @@
                             <th class="px-4 py-2.5 text-center text-rose-600">% Ketidakhadiran</th>
                         `;
 
-                        let scopeSiswa = listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
-                        if (kelasId) {
+                        let scopeSiswa = isTka ? app.helper.getSiswaKelas9List() : listSiswa.filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                        if (kelasId && kelasId !== 'ALL') {
                             scopeSiswa = scopeSiswa.filter(s => (s.id_kelas === kelasId || s.class_id === kelasId));
                         }
 
