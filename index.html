@@ -194,7 +194,7 @@
                 <p class="text-sky-200/70 mt-1 text-sm font-medium">PASTIKAN ANDA SUDAH CEK GRUP WALI UNTUK MELIHAT INFORMASI DARI MASING-MASING WALI KELAS</p>
                 <div class="mt-4 p-3.5 bg-sky-500/10 text-sky-200 rounded-xl text-xs border border-sky-400/20 flex items-start space-x-2 backdrop-blur-md">
                     <i class="fa-solid fa-circle-info mt-0.5 text-sky-400"></i>
-                    <span class="text-left leading-relaxed">Kredensial Login:<br>• Admin: <b>seperti biasa</b> / <b>seperti biasanya ya</b><br>
+                    <span class="text-left leading-relaxed">Kredensial Login:<br>• Admin: <b>Seperti biasany</b> / <b>Seperti biasanya ya</b><br>
                 </div>
             </div>
             <form id="loginForm" onsubmit="event.preventDefault(); app.handleLogin(event); return false;" class="space-y-5">
@@ -2844,6 +2844,26 @@
                     if (!d) return '';
                     return d.toString().trim().split(/[T ]/)[0];
                 },
+                formatTanggalIndo: function(tglStr) {
+                    if (!tglStr) return '';
+                    const cleanStr = tglStr.toString().trim().split(/[T ]/)[0];
+                    const parts = cleanStr.split('-');
+                    if (parts.length !== 3) return tglStr;
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const d = new Date(year, month, day);
+                    if (isNaN(d.getTime())) return tglStr;
+                    const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu'];
+                    const namaBulan = [
+                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                    ];
+                    const hari = namaHari[d.getDay()];
+                    const tglPadded = String(day).padStart(2, '0');
+                    const bulan = namaBulan[month];
+                    return `${hari}, ${tglPadded} ${bulan} ${year}`;
+                },
                 isKelas9: function(k) {
                     if (!k) return false;
                     const kode = (k.kode || k.kode_kelas || '').toString().trim().toUpperCase();
@@ -4749,9 +4769,11 @@
                             ? app.state.setting.wa_footer
                             : 'Hormat Kami, Admin SMP Negeri 1 Mirit';
 
+                        const tglIndo = app.helper.formatTanggalIndo(tanggal);
+
                         let waMessage = '';
                         if (absentStudents.length === 0) {
-                            waMessage = `📢 *INFORMASI PRESENSI SISWA*\n───────────────────\n\nHari ini *${className}* Nihil berangkat semuanya.\n\n───────────────────\n_${footer}_`;
+                            waMessage = `📢 *INFORMASI PRESENSI SISWA*\n───────────────────\n\nHari ini ${tglIndo} *${className}* Nihil berangkat semuanya.\n\n───────────────────\n_${footer}_`;
                         } else {
                             const statusGroups = {};
                             absentStudents.forEach(st => {
@@ -4773,7 +4795,7 @@
                                 });
                             }
 
-                            waMessage = `📢 *INFORMASI KETIDAKHADIRAN SISWA*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${className}*\n${detailsText}\n_Telah dilaporkan dan dicatat dalam sistem kehadiran digital._\n───────────────────\n_${footer}_`;
+                            waMessage = `📢 *INFORMASI KETIDAKHADIRAN SISWA*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tglIndo}_\n🏫 *Kelas:* *${className}*\n${detailsText}\n_Telah dilaporkan dan dicatat dalam sistem kehadiran digital._\n───────────────────\n_${footer}_`;
                         }
 
                         await WA_GATEWAY_SERVICE.sendMessage({
@@ -5109,6 +5131,7 @@
                         }
 
                         // === KIRIM NOTIFIKASI WA ASESMEN SUMATIF ===
+                        const tglIndo = app.helper.formatTanggalIndo(tanggal);
                         const footer = (app.state.setting && app.state.setting.wa_footer)
                             ? app.state.setting.wa_footer
                             : 'Hormat Kami, Admin SMP Negeri 1 Mirit';
@@ -5121,10 +5144,10 @@
 
                             let msgA = '';
                             if (absentA.length === 0) {
-                                msgA = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\nHari ini *${clsNameA}* (${kelompokA}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                                msgA = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\nHari ini ${tglIndo} *${clsNameA}* (${kelompokA}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
                             } else {
                                 let detA = absentA.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
-                                msgA = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameA}* (${kelompokA}) - ${ruang}\n\n*Ketidakhadiran:*\n${detA}\n\n───────────────────\n_${footer}_`;
+                                msgA = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tglIndo}_\n🏫 *Kelas:* *${clsNameA}* (${kelompokA}) - ${ruang}\n\n*Ketidakhadiran:*\n${detA}\n\n───────────────────\n_${footer}_`;
                             }
 
                             await WA_GATEWAY_SERVICE.sendMessage({
@@ -5144,10 +5167,10 @@
 
                             let msgB = '';
                             if (absentB.length === 0) {
-                                msgB = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\nHari ini *${clsNameB}* (${kelompokB}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                                msgB = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\nHari ini ${tglIndo} *${clsNameB}* (${kelompokB}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
                             } else {
                                 let detB = absentB.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
-                                msgB = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameB}* (${kelompokB}) - ${ruang}\n\n*Ketidakhadiran:*\n${detB}\n\n───────────────────\n_${footer}_`;
+                                msgB = `📢 *PRESENSI ASESMEN SUMATIF*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tglIndo}_\n🏫 *Kelas:* *${clsNameB}* (${kelompokB}) - ${ruang}\n\n*Ketidakhadiran:*\n${detB}\n\n───────────────────\n_${footer}_`;
                             }
 
                             await WA_GATEWAY_SERVICE.sendMessage({
@@ -5486,6 +5509,7 @@
                         }
 
                         // === KIRIM NOTIFIKASI WA ASESMEN TKA ===
+                        const tglIndo = app.helper.formatTanggalIndo(tanggal);
                         const footer = (app.state.setting && app.state.setting.wa_footer)
                             ? app.state.setting.wa_footer
                             : 'Hormat Kami, Admin SMP Negeri 1 Mirit';
@@ -5498,10 +5522,10 @@
 
                             let msgA = '';
                             if (absentA.length === 0) {
-                                msgA = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\nHari ini *${clsNameA}* (${kelompokA}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                                msgA = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\nHari ini ${tglIndo} *${clsNameA}* (${kelompokA}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
                             } else {
                                 let detA = absentA.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
-                                msgA = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameA}* (${kelompokA}) - ${ruang}\n\n*Ketidakhadiran:*\n${detA}\n\n───────────────────\n_${footer}_`;
+                                msgA = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tglIndo}_\n🏫 *Kelas:* *${clsNameA}* (${kelompokA}) - ${ruang}\n\n*Ketidakhadiran:*\n${detA}\n\n───────────────────\n_${footer}_`;
                             }
 
                             await WA_GATEWAY_SERVICE.sendMessage({
@@ -5521,10 +5545,10 @@
 
                             let msgB = '';
                             if (absentB.length === 0) {
-                                msgB = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\nHari ini *${clsNameB}* (${kelompokB}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
+                                msgB = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\nHari ini ${tglIndo} *${clsNameB}* (${kelompokB}) - ${ruang} Nihil berangkat semua.\n\n───────────────────\n_${footer}_`;
                             } else {
                                 let detB = absentB.map((s, i) => `  ${i + 1}. *${s.nama}* (${s.status})`).join('\n');
-                                msgB = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\n📅 *Tanggal:* _${tanggal}_\n🏫 *Kelas:* *${clsNameB}* (${kelompokB}) - ${ruang}\n\n*Ketidakhadiran:*\n${detB}\n\n───────────────────\n_${footer}_`;
+                                msgB = `📢 *PRESENSI ASESMEN TKA*\n───────────────────\n\n📅 *Hari/Tanggal:* _${tglIndo}_\n🏫 *Kelas:* *${clsNameB}* (${kelompokB}) - ${ruang}\n\n*Ketidakhadiran:*\n${detB}\n\n───────────────────\n_${footer}_`;
                             }
 
                             await WA_GATEWAY_SERVICE.sendMessage({
