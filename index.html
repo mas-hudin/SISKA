@@ -194,7 +194,7 @@
                 <p class="text-sky-200/70 mt-1 text-sm font-medium">PASTIKAN ANDA SUDAH CEK GRUP WALI UNTUK MELIHAT INFORMASI DARI MASING-MASING WALI KELAS</p>
                 <div class="mt-4 p-3.5 bg-sky-500/10 text-sky-200 rounded-xl text-xs border border-sky-400/20 flex items-start space-x-2 backdrop-blur-md">
                     <i class="fa-solid fa-circle-info mt-0.5 text-sky-400"></i>
-                    <span class="text-left leading-relaxed">Kredensial Login:<br>• Admin: <b>Seperti biasany</b> / <b>Seperti biasanya ya</b><br>
+                    <span class="text-left leading-relaxed">Kredensial Login:<br>• Admin: <b>admin</b> / <b>admin123</b><br>
                 </div>
             </div>
             <form id="loginForm" onsubmit="event.preventDefault(); app.handleLogin(event); return false;" class="space-y-5">
@@ -2168,7 +2168,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-settings', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(cur)
                             });
                         } catch(e){}
@@ -2188,7 +2188,7 @@
                     try {
                         fetch('https://api.mashudin.my.id/api/save-row', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ table, idCol, data: dataObject })
                         });
                     } catch(err) {
@@ -2220,7 +2220,7 @@
                     try {
                         fetch('https://api.mashudin.my.id/api/delete-row', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ table, idCol, targetId })
                         });
                     } catch(err) {
@@ -2247,7 +2247,7 @@
                     try {
                         const resp = await fetch('https://api.mashudin.my.id/api/send-wa', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({
                                 target: payload.target,
                                 message: payload.message,
@@ -2531,7 +2531,9 @@
             syncWithDatabase: async function(silent = false) {
                 // === REALTIME SYNC DARI PUSAT DATABASE VPS (UNTUK HP & LAPTOP) ===
                 try {
-                    const vpsRes = await fetch('https://api.mashudin.my.id/api/all-data');
+                    const vpsRes = await fetch('https://api.mashudin.my.id/api/all-data', {
+                        headers: { 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' }
+                    });
                     if (vpsRes.ok) {
                         const json = await vpsRes.json();
                         if (json && json.success && json.siswa && json.siswa.length > 0) {
@@ -4752,7 +4754,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-absen', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(payload)
                             });
                         } catch(err) {
@@ -5123,7 +5125,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-sumatif', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(payload)
                             });
                         } catch(err) {
@@ -5501,7 +5503,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-tka', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(payload)
                             });
                         } catch(err) {
@@ -5897,7 +5899,7 @@
                     try {
                         fetch('https://api.mashudin.my.id/api/save-btka', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ record: newRecord })
                         });
                     } catch(err) {
@@ -6545,7 +6547,7 @@
                         const targetRec = records[existingIdx > -1 ? existingIdx : records.length - 1];
                         fetch('https://api.mashudin.my.id/api/save-btka', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ record: targetRec })
                         });
                     } catch(err) {
@@ -8377,7 +8379,7 @@
                     try {
                         const resp = await fetch('https://api.mashudin.my.id/api/save-settings', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify(newSettings)
                         });
                         if (resp.ok) {
