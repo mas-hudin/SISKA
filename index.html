@@ -8363,7 +8363,7 @@
                     this.renderUserManagement();
                 },
 
-                renderUserManagement: async function() {
+                                renderUserManagement: async function() {
                     const container = document.getElementById('user-mgmt-container');
                     const badge = document.getElementById('user-mgmt-badge');
                     if (!container) return;
@@ -8375,7 +8375,7 @@
                         if (badge) {
                             badge.innerHTML = '<span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 flex items-center"><i class="fa-solid fa-lock mr-1.5"></i>Terkunci (Khusus Super Admin)</span>';
                         }
-                        container.innerHTML = 
+                        container.innerHTML = `
                             <div class="p-6 rounded-2xl bg-amber-50/70 border border-amber-200 text-center">
                                 <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg">
                                     <i class="fa-solid fa-shield-halved"></i>
@@ -8385,7 +8385,7 @@
                                     Pengubahan <b>Username</b> dan <b>Password</b> akun sistem SISKA hanya dapat dilakukan oleh pengguna dengan hak akses <b>Super Administrator</b>. Akun Admin reguler tidak memiliki hak akses untuk mengubah kredensial ini.
                                 </p>
                             </div>
-                        ;
+                        `;
                         return;
                     }
 
@@ -8393,7 +8393,7 @@
                         badge.innerHTML = '<span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 flex items-center"><i class="fa-solid fa-check-double mr-1.5"></i>Hak Akses Super Admin Aktif</span>';
                     }
 
-                    container.innerHTML = 
+                    container.innerHTML = `
                         <div class="space-y-6">
                             <div class="p-4 rounded-xl bg-sky-50/80 border border-sky-200 text-sky-950 text-xs flex items-start space-x-3">
                                 <i class="fa-solid fa-circle-check text-sky-600 text-base mt-0.5 flex-shrink-0"></i>
@@ -8489,7 +8489,7 @@
                                 </div>
                             </div>
                         </div>
-                    ;
+                    `;
 
                     await app.setting.fetchUserList();
                 },
@@ -8538,23 +8538,23 @@
                                 app.setting._cachedUsers = data.users;
                                 const listContainer = document.getElementById('mgmt-user-list-table');
                                 if (listContainer) {
-                                    listContainer.innerHTML = data.users.map(u => 
+                                    listContainer.innerHTML = data.users.map(u => `
                                         <div class="p-3 bg-white rounded-xl border border-gray-200 flex items-center justify-between">
                                             <div>
                                                 <div class="font-bold text-xs text-slate-800 flex items-center">
                                                     <i class="fa-solid fa-user-check text-emerald-500 mr-1.5 text-[10px]"></i>
-                                                    
+                                                    ${u.username}
                                                 </div>
-                                                <div class="text-[11px] text-slate-500"></div>
+                                                <div class="text-[11px] text-slate-500">${u.nama || (u.role === 'superadmin' ? 'Super Administrator' : 'Operator Presensi')}</div>
                                             </div>
                                             <div class="text-right">
-                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ">
-                                                    
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${u.role === 'superadmin' ? 'bg-purple-100 text-purple-800' : 'bg-sky-100 text-sky-800'}">
+                                                    ${u.role === 'superadmin' ? 'Super Admin' : 'Admin'}
                                                 </span>
                                                 <div class="text-[9px] text-slate-400 mt-0.5">Aktif</div>
                                             </div>
                                         </div>
-                                    ).join('');
+                                    `).join('');
                                 }
 
                                 // Update default value pada input username
@@ -8624,9 +8624,9 @@
 
                     const confirmResult = await Swal.fire({
                         title: 'Konfirmasi Perubahan Kredensial',
-                        html: Apakah Anda yakin ingin memperbarui data akun <b></b>?<br><br>
-                               • Username Baru: <b></b><br>
-                               • Kata Sandi: <b></b>,
+                        html: `Apakah Anda yakin ingin memperbarui data akun <b>${targetRole.toUpperCase()}</b>?<br><br>
+                               • Username Baru: <b>${newUsername}</b><br>
+                               • Kata Sandi: <b>${newPwd ? 'Diperbarui (Sandi Baru)' : 'Tetap (Tidak Berubah)'}</b>`,
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonText: 'Ya, Simpan Perubahan',
@@ -8691,9 +8691,9 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: '✅ Kredensial Berhasil Diperbarui!',
-                                html: Akun <b></b> berhasil diperbarui di server VPS.<br>
-                                       Username: <b></b><br>
-                                       ,
+                                html: `Akun <b>${targetRole.toUpperCase()}</b> berhasil diperbarui di server VPS.<br>
+                                       Username: <b>${newUsername}</b><br>
+                                       ${newPwd ? 'Kata Sandi Baru telah aktif.' : 'Kata sandi tetap menggunakan yang lama.'}`,
                                 confirmButtonColor: '#0ea5e9'
                             });
 
@@ -8711,6 +8711,7 @@
                 saveUserPassword: function() {
                     return this.saveUserCredentials();
                 },
+
 
                 handleLogoUpload: function(input) {
                     const file = input.files[0];
