@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -174,6 +174,7 @@
 
         <div class="shape-blob shape-1"></div>
         <div class="shape-blob shape-2"></div>
+        
         <div class="glass-card p-8 rounded-2xl w-full max-w-md transform transition-all border border-white/15 shadow-2xl mx-4 z-10 relative">
             <div class="text-center mb-6">
                 <!-- LOGO SEKOLAH (HANYA LIHAT / READ-ONLY DEMI KEAMANAN) -->
@@ -187,9 +188,9 @@
                 <h1 class="text-2xl font-bold text-white tracking-tight">E-SISKA SMPN 1 MIRIT</h1>
                 <p class="text-sky-200/70 mt-1 text-sm font-medium">Sistem Informasi Sekolah & WA Gateway</p>
                 <p class="text-sky-200/70 mt-1 text-sm font-medium">PASTIKAN ANDA SUDAH CEK GRUP WALI UNTUK MELIHAT INFORMASI DARI MASING-MASING WALI KELAS</p>
-                <div class="mt-4 p-3.5 bg-sky-500/10 text-sky-200 rounded-xl text-xs border border-sky-400/20 flex items-start space-x-2 backdrop-blur-md">
-                    <i class="fa-solid fa-circle-info mt-0.5 text-sky-400"></i>
-                    <span class="text-left leading-relaxed">Kredensial Login:<br>• Admin: <b>Seperti biasany</b> / <b>Seperti biasanya ya</b><br>
+                <div class="mt-4 p-3 bg-sky-500/10 text-sky-200 rounded-xl text-xs border border-sky-400/20 flex items-center space-x-2.5 backdrop-blur-md">
+                    <i class="fa-solid fa-shield-halved text-sky-400 text-sm"></i>
+                    <span class="text-left font-medium">Sistem Keamanan Aktif. Silakan login menggunakan akun terdaftar Anda.</span>
                 </div>
             </div>
             <form id="loginForm" onsubmit="event.preventDefault(); app.handleLogin(event); return false;" class="space-y-5">
@@ -295,10 +296,8 @@
                     <a href="#" onclick="app.navigate('setting')" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-xl text-gray-300 hover:bg-slate-800 hover:text-white transition-all text-sm" data-target="setting">
                         <i class="fa-solid fa-sliders w-5 text-center text-lg"></i> <span>Pengaturan</span>
                     </a>
-
-                    <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Integrasi Website Sekolah</div>
-                    <a href="publik.html" target="_blank" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-xl text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/60 hover:text-white transition-all text-sm border border-emerald-800/60">
-                        <i class="fa-solid fa-arrow-up-right-from-square w-5 text-center text-lg text-emerald-400"></i> <span>Buka Halaman Publik</span>
+                    <a href="#" id="sidebar-user-mgmt-link" onclick="app.navigate('setting'); setTimeout(() => { const el = document.getElementById('card-user-management'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 150);" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-xl text-gray-300 hover:bg-slate-800 hover:text-white transition-all text-sm hidden" data-target="user-mgmt">
+                        <i class="fa-solid fa-user-shield w-5 text-center text-lg text-emerald-400"></i> <span>Kelola User & Sandi</span>
                     </a>
                 </nav>
             </div>
@@ -1823,6 +1822,28 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- CARD: MANAJEMEN AKUN & PENGATURAN PASSWORD (ROLE SUPER ADMIN) -->
+                    <div id="card-user-management" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-4xl mx-auto mt-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-3 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                    <i class="fa-solid fa-user-shield text-primary mr-2.5 text-xl"></i> Manajemen Akun & Pengaturan User / Password
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">Kelola dan perbarui username serta kata sandi akun Admin dan Super Admin sistem SISKA (Khusus Super Admin).</p>
+                            </div>
+                            <div id="user-mgmt-badge">
+                                <span class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 flex items-center">
+                                    <i class="fa-solid fa-circle-notch fa-spin mr-1.5 text-xs text-sky-500"></i> Memuat Sesi...
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Konten Manajemen Password -->
+                        <div id="user-mgmt-container">
+                            <!-- Dirender secara dinamis oleh app.setting.renderUserManagement() -->
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -2168,7 +2189,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-settings', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(cur)
                             });
                         } catch(e){}
@@ -2188,7 +2209,7 @@
                     try {
                         fetch('https://api.mashudin.my.id/api/save-row', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ table, idCol, data: dataObject })
                         });
                     } catch(err) {
@@ -2220,7 +2241,7 @@
                     try {
                         fetch('https://api.mashudin.my.id/api/delete-row', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ table, idCol, targetId })
                         });
                     } catch(err) {
@@ -2247,7 +2268,7 @@
                     try {
                         const resp = await fetch('https://api.mashudin.my.id/api/send-wa', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({
                                 target: payload.target,
                                 message: payload.message,
@@ -2493,7 +2514,9 @@
             syncWithDatabase: async function(silent = false) {
                 // === REALTIME SYNC DARI PUSAT DATABASE VPS (UNTUK HP & LAPTOP) ===
                 try {
-                    const vpsRes = await fetch('https://api.mashudin.my.id/api/all-data');
+                    const vpsRes = await fetch('https://api.mashudin.my.id/api/all-data', {
+                        headers: { 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' }
+                    });
                     if (vpsRes.ok) {
                         const json = await vpsRes.json();
                         if (json && json.success && json.siswa && json.siswa.length > 0) {
@@ -2672,20 +2695,71 @@
                 this.pengumuman.populateCheckboxes();
             },
             
-            handleLogin: function(e) {
-                e.preventDefault();
-                const u = document.getElementById('username').value.trim();
-                const p = document.getElementById('password').value.trim();
-                if(u === 'admin' && p === 'admin123') {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('userRole', 'admin');
-                    app.showMain();
-                } else if(u === 'superadmin' && p === 'superadmin123') {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('userRole', 'superadmin');
-                    app.showMain();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Username atau password tidak valid!', confirmButtonColor: '#0ea5e9' });
+            handleLogin: async function(e) {
+                if(e) e.preventDefault();
+                const u = (document.getElementById('username').value || '').trim();
+                const p = (document.getElementById('password').value || '').trim();
+                if(!u || !p) {
+                    Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Silakan isi username dan kata sandi!', confirmButtonColor: '#0ea5e9' });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Memverifikasi...',
+                    text: 'Sedang memeriksa kredensial akun ke server VPS...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    const resp = await fetch('https://api.mashudin.my.id/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: u, password: p })
+                    });
+                    const resJson = await resp.json();
+                    if (resJson && resJson.success && resJson.user) {
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        const role = (resJson.user.role || (u.toLowerCase() === 'superadmin' ? 'superadmin' : 'admin')).toLowerCase();
+                        sessionStorage.setItem('userRole', role);
+                        sessionStorage.setItem('username', resJson.user.username || u);
+                        sessionStorage.setItem('userName', resJson.user.nama || u);
+
+                        // Simpan cache lokal untuk offline fallback
+                        try {
+                            const cache = JSON.parse(localStorage.getItem('siska_users_cache') || '{}');
+                            cache[u.toLowerCase()] = p;
+                            localStorage.setItem('siska_users_cache', JSON.stringify(cache));
+                        } catch(ce){}
+
+                        Swal.close();
+                        await app.showMain();
+                        return;
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Akses Ditolak',
+                            text: (resJson && resJson.message) ? resJson.message : 'Username atau password tidak valid!',
+                            confirmButtonColor: '#0ea5e9'
+                        });
+                        return;
+                    }
+                } catch(netErr) {
+                    console.warn('[LOGIN] Koneksi API offline, mencoba fallback cache lokal:', netErr);
+                    let cache = {};
+                    try { cache = JSON.parse(localStorage.getItem('siska_users_cache') || '{}'); } catch(ce){}
+                    const uLow = u.toLowerCase();
+                    const expectedPwd = cache[uLow] || (uLow === 'admin' ? 'admin123' : (uLow === 'superadmin' ? 'superadmin123' : null));
+                    if (expectedPwd && p === expectedPwd) {
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('userRole', uLow === 'superadmin' ? 'superadmin' : 'admin');
+                        sessionStorage.setItem('username', u);
+                        sessionStorage.setItem('userName', uLow === 'superadmin' ? 'Super Administrator' : 'Administrator');
+                        Swal.close();
+                        await app.showMain();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Username atau kata sandi tidak valid!', confirmButtonColor: '#0ea5e9' });
+                    }
                 }
             },
 
@@ -2697,12 +2771,15 @@
                 const roleTitleEl = document.getElementById('sidebar-role-title');
                 const userInitialsEl = document.getElementById('userInitials');
                 
+                const userMgmtSidebar = document.getElementById('sidebar-user-mgmt-link');
                 if(role === 'superadmin') {
                     if(roleTitleEl) roleTitleEl.innerText = "SUPER ADMIN";
                     if(userInitialsEl) userInitialsEl.innerText = "SA";
+                    if(userMgmtSidebar) userMgmtSidebar.classList.remove('hidden');
                 } else {
                     if(roleTitleEl) roleTitleEl.innerText = "SISKA ADMIN";
                     if(userInitialsEl) userInitialsEl.innerText = "AD";
+                    if(userMgmtSidebar) userMgmtSidebar.classList.add('hidden');
                 }
 
                 Swal.fire({ title: 'Menghubungkan...', text: 'Mengambil data dari Spreadsheet...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
@@ -4714,7 +4791,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-absen', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(payload)
                             });
                         } catch(err) {
@@ -5085,7 +5162,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-sumatif', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(payload)
                             });
                         } catch(err) {
@@ -5463,7 +5540,7 @@
                         try {
                             await fetch('https://api.mashudin.my.id/api/save-tka', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                                 body: JSON.stringify(payload)
                             });
                         } catch(err) {
@@ -5859,7 +5936,7 @@
                     try {
                         fetch('https://api.mashudin.my.id/api/save-btka', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ record: newRecord })
                         });
                     } catch(err) {
@@ -6507,7 +6584,7 @@
                         const targetRec = records[existingIdx > -1 ? existingIdx : records.length - 1];
                         fetch('https://api.mashudin.my.id/api/save-btka', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify({ record: targetRec })
                         });
                     } catch(err) {
@@ -8281,6 +8358,358 @@
                         });
                         if (lockIndicator) lockIndicator.classList.add('hidden');
                     }
+
+                    // Muat panel manajemen user & password
+                    this.renderUserManagement();
+                },
+
+                renderUserManagement: async function() {
+                    const container = document.getElementById('user-mgmt-container');
+                    const badge = document.getElementById('user-mgmt-badge');
+                    if (!container) return;
+
+                    const role = (sessionStorage.getItem('userRole') || 'admin').toLowerCase();
+                    const isSuperAdmin = (role === 'superadmin');
+
+                    if (!isSuperAdmin) {
+                        if (badge) {
+                            badge.innerHTML = '<span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 flex items-center"><i class="fa-solid fa-lock mr-1.5"></i>Terkunci (Khusus Super Admin)</span>';
+                        }
+                        container.innerHTML = 
+                            <div class="p-6 rounded-2xl bg-amber-50/70 border border-amber-200 text-center">
+                                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-1">Akses Pengaturan User & Password Terkunci</h4>
+                                <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                                    Pengubahan <b>Username</b> dan <b>Password</b> akun sistem SISKA hanya dapat dilakukan oleh pengguna dengan hak akses <b>Super Administrator</b>. Akun Admin reguler tidak memiliki hak akses untuk mengubah kredensial ini.
+                                </p>
+                            </div>
+                        ;
+                        return;
+                    }
+
+                    if (badge) {
+                        badge.innerHTML = '<span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 flex items-center"><i class="fa-solid fa-check-double mr-1.5"></i>Hak Akses Super Admin Aktif</span>';
+                    }
+
+                    container.innerHTML = 
+                        <div class="space-y-6">
+                            <div class="p-4 rounded-xl bg-sky-50/80 border border-sky-200 text-sky-950 text-xs flex items-start space-x-3">
+                                <i class="fa-solid fa-circle-check text-sky-600 text-base mt-0.5 flex-shrink-0"></i>
+                                <div class="leading-relaxed">
+                                    <strong>Otoritas Super Admin Aktif:</strong> Anda memiliki kewenangan penuh untuk mengganti <b>Username</b> dan <b>Password</b> untuk akun <b>Admin (Operator/Petugas)</b> maupun akun <b>Super Admin</b>. Seluruh perubahan akan disimpan permanen ke database VPS dan langsung aktif seketika.
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                <!-- Kolom Form Ganti User & Password -->
+                                <div class="lg:col-span-7 bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                                    <h4 class="font-bold text-slate-800 text-sm flex items-center">
+                                        <i class="fa-solid fa-user-pen mr-2 text-primary"></i> Form Ubah Username & Password
+                                    </h4>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Pilih Akun yang Dikelola</label>
+                                        <select id="mgmt-target-user" onchange="app.setting.onTargetUserChange()" class="w-full bg-white border border-gray-300 rounded-xl text-sm py-2.5 px-3.5 focus:ring-2 focus:ring-primary outline-none font-semibold text-slate-800">
+                                            <option value="1">Akun Admin (Operator / Petugas Presensi)</option>
+                                            <option value="2">Akun Super Admin (Administrator Utama)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Username Akun</label>
+                                        <div class="relative">
+                                            <input type="text" id="mgmt-username" class="w-full bg-white pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none text-slate-800 font-semibold" placeholder="Masukkan username baru...">
+                                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                                                <i class="fa-solid fa-user text-sm"></i>
+                                            </span>
+                                        </div>
+                                        <span class="text-[11px] text-gray-500 mt-1 block">Username digunakan untuk login ke sistem SISKA.</span>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Kata Sandi Baru</label>
+                                            <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium">Opsional (Kosongkan jika tak ingin ganti sandi)</span>
+                                        </div>
+                                        <div class="relative">
+                                            <input type="password" id="mgmt-new-password" class="w-full bg-white pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none text-slate-800" placeholder="Ketik kata sandi baru (minimal 5 karakter)...">
+                                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                                                <i class="fa-solid fa-lock text-sm"></i>
+                                            </span>
+                                            <button type="button" onclick="app.setting.togglePwdVisibility('mgmt-new-password', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none" title="Lihat password">
+                                                <i class="fa-solid fa-eye text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Konfirmasi Kata Sandi Baru</label>
+                                        <div class="relative">
+                                            <input type="password" id="mgmt-confirm-password" class="w-full bg-white pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none text-slate-800" placeholder="Ketik ulang kata sandi baru...">
+                                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                                                <i class="fa-solid fa-shield-halved text-sm"></i>
+                                            </span>
+                                            <button type="button" onclick="app.setting.togglePwdVisibility('mgmt-confirm-password', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none" title="Lihat konfirmasi password">
+                                                <i class="fa-solid fa-eye text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2">
+                                        <button type="button" onclick="app.setting.saveUserCredentials()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all text-sm flex items-center justify-center space-x-2">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                            <span>Simpan Perubahan (User & Password)</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Kolom Status & Daftar Akun -->
+                                <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+                                    <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80">
+                                        <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center">
+                                            <i class="fa-solid fa-users-gear mr-2 text-primary"></i> Daftar Akun SISKA Terdaftar
+                                        </h4>
+                                        <div id="mgmt-user-list-table" class="space-y-3">
+                                            <div class="p-3 bg-white rounded-xl border border-gray-200 flex items-center justify-between animate-pulse">
+                                                <div class="text-xs text-slate-400"><i class="fa-solid fa-circle-notch fa-spin mr-1.5"></i>Memuat data akun...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs">
+                                        <div class="font-bold mb-1 flex items-center">
+                                            <i class="fa-solid fa-shield-virus mr-1.5 text-amber-600"></i> Catatan Keamanan:
+                                        </div>
+                                        <p class="text-[11px] leading-relaxed text-amber-800">
+                                            Pastikan Anda mengingat username dan kata sandi baru yang telah disimpan. Jika Anda mengubah akun Super Admin yang sedang aktif digunakan, Anda akan diminta login ulang pada sesi berikutnya menggunakan kredensial baru tersebut.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ;
+
+                    await app.setting.fetchUserList();
+                },
+
+                onTargetUserChange: function() {
+                    const targetSelect = document.getElementById('mgmt-target-user');
+                    const targetId = targetSelect ? targetSelect.value : '1';
+                    const userObj = (app.setting._cachedUsers || []).find(u => String(u.id) === String(targetId));
+                    const unameEl = document.getElementById('mgmt-username');
+                    if (unameEl && userObj) {
+                        unameEl.value = userObj.username;
+                    }
+                    const newPwdEl = document.getElementById('mgmt-new-password');
+                    const confPwdEl = document.getElementById('mgmt-confirm-password');
+                    if (newPwdEl) newPwdEl.value = '';
+                    if (confPwdEl) confPwdEl.value = '';
+                },
+
+                togglePwdVisibility: function(inputId, btn) {
+                    const input = document.getElementById(inputId);
+                    if (!input) return;
+                    const icon = btn.querySelector('i');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        if (icon) {
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        }
+                    } else {
+                        input.type = 'password';
+                        if (icon) {
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    }
+                },
+
+                fetchUserList: async function() {
+                    try {
+                        const resp = await fetch('https://api.mashudin.my.id/api/users', {
+                            headers: { 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' }
+                        });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (data && data.success && data.users) {
+                                app.setting._cachedUsers = data.users;
+                                const listContainer = document.getElementById('mgmt-user-list-table');
+                                if (listContainer) {
+                                    listContainer.innerHTML = data.users.map(u => 
+                                        <div class="p-3 bg-white rounded-xl border border-gray-200 flex items-center justify-between">
+                                            <div>
+                                                <div class="font-bold text-xs text-slate-800 flex items-center">
+                                                    <i class="fa-solid fa-user-check text-emerald-500 mr-1.5 text-[10px]"></i>
+                                                    
+                                                </div>
+                                                <div class="text-[11px] text-slate-500"></div>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ">
+                                                    
+                                                </span>
+                                                <div class="text-[9px] text-slate-400 mt-0.5">Aktif</div>
+                                            </div>
+                                        </div>
+                                    ).join('');
+                                }
+
+                                // Update default value pada input username
+                                const targetSelect = document.getElementById('mgmt-target-user');
+                                const targetId = targetSelect ? targetSelect.value : '1';
+                                const userObj = data.users.find(u => String(u.id) === String(targetId));
+                                const unameEl = document.getElementById('mgmt-username');
+                                if (unameEl && userObj && (!unameEl.value || unameEl.dataset.synced !== 'true')) {
+                                    unameEl.value = userObj.username;
+                                    unameEl.dataset.synced = 'true';
+                                }
+                            }
+                        }
+                    } catch(e) {
+                        console.warn('[USERS] Gagal mengambil daftar user:', e);
+                    }
+                },
+
+                saveUserCredentials: async function() {
+                    const role = (sessionStorage.getItem('userRole') || '').toLowerCase();
+                    if (role !== 'superadmin') {
+                        Swal.fire('Akses Ditolak', 'Hanya akun Super Administrator yang memiliki wewenang untuk mengubah username dan password!', 'error');
+                        return;
+                    }
+
+                    const targetSelect = document.getElementById('mgmt-target-user');
+                    const targetId = targetSelect ? targetSelect.value : '1';
+                    const targetRole = targetId === '2' ? 'superadmin' : 'admin';
+                    const unameEl = document.getElementById('mgmt-username');
+                    const newPwdEl = document.getElementById('mgmt-new-password');
+                    const confPwdEl = document.getElementById('mgmt-confirm-password');
+
+                    const newUsername = unameEl ? unameEl.value.trim() : '';
+                    const newPwd = newPwdEl ? newPwdEl.value.trim() : '';
+                    const confPwd = confPwdEl ? confPwdEl.value.trim() : '';
+
+                    if (!newUsername) {
+                        Swal.fire('Perhatian', 'Username tidak boleh kosong!', 'warning');
+                        if (unameEl) unameEl.focus();
+                        return;
+                    }
+
+                    if (newUsername.length < 3) {
+                        Swal.fire('Username Terlalu Pendek', 'Username minimal harus memiliki panjang 3 karakter.', 'warning');
+                        if (unameEl) unameEl.focus();
+                        return;
+                    }
+
+                    if (!/^[a-zA-Z0-9_\.\-]+$/.test(newUsername)) {
+                        Swal.fire('Format Tidak Valid', 'Username hanya boleh mengandung huruf, angka, garis bawah (_), titik (.), atau tanda hubung (-).', 'warning');
+                        if (unameEl) unameEl.focus();
+                        return;
+                    }
+
+                    if (newPwd) {
+                        if (newPwd.length < 5) {
+                            Swal.fire('Password Terlalu Pendek', 'Kata sandi baru minimal 5 karakter demi keamanan!', 'warning');
+                            if (newPwdEl) newPwdEl.focus();
+                            return;
+                        }
+                        if (newPwd !== confPwd) {
+                            Swal.fire('Tidak Cocok', 'Konfirmasi kata sandi tidak sesuai dengan kata sandi baru. Harap periksa kembali!', 'error');
+                            if (confPwdEl) confPwdEl.focus();
+                            return;
+                        }
+                    }
+
+                    const confirmResult = await Swal.fire({
+                        title: 'Konfirmasi Perubahan Kredensial',
+                        html: Apakah Anda yakin ingin memperbarui data akun <b></b>?<br><br>
+                               • Username Baru: <b></b><br>
+                               • Kata Sandi: <b></b>,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Simpan Perubahan',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#059669',
+                        cancelButtonColor: '#64748b'
+                    });
+
+                    if (!confirmResult.isConfirmed) return;
+
+                    Swal.fire({
+                        title: 'Menyimpan ke Server VPS...',
+                        text: 'Memperbarui username & kata sandi akun di database...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    try {
+                        const updateData = {
+                            id: targetId,
+                            username: newUsername,
+                            nama: targetId === '2' ? 'Super Administrator' : 'Administrator Utama',
+                            role: targetRole,
+                            updated_at: new Date().toISOString()
+                        };
+                        if (newPwd) {
+                            updateData.password = newPwd;
+                        }
+
+                        const resp = await fetch('https://api.mashudin.my.id/api/save-row', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE'
+                            },
+                            body: JSON.stringify({
+                                table: 'Users',
+                                idCol: 'id',
+                                data: updateData
+                            })
+                        });
+
+                        const resJson = await resp.json();
+                        if (resp.ok && resJson && resJson.success) {
+                            // Update cache lokal untuk offline fallback
+                            try {
+                                const cache = JSON.parse(localStorage.getItem('siska_users_cache') || '{}');
+                                if (newPwd) {
+                                    cache[newUsername.toLowerCase()] = newPwd;
+                                }
+                                localStorage.setItem('siska_users_cache', JSON.stringify(cache));
+                            } catch(ce){}
+
+                            // Update state jika akun sendiri yang diubah
+                            if (targetId === '2') {
+                                sessionStorage.setItem('username', newUsername);
+                            }
+
+                            if (newPwdEl) newPwdEl.value = '';
+                            if (confPwdEl) confPwdEl.value = '';
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: '✅ Kredensial Berhasil Diperbarui!',
+                                html: Akun <b></b> berhasil diperbarui di server VPS.<br>
+                                       Username: <b></b><br>
+                                       ,
+                                confirmButtonColor: '#0ea5e9'
+                            });
+
+                            if (unameEl) unameEl.dataset.synced = 'false';
+                            await app.setting.fetchUserList();
+                        } else {
+                            Swal.fire('Gagal Menyimpan', (resJson && resJson.message) ? resJson.message : 'Terjadi kesalahan saat menyimpan kredensial di VPS.', 'error');
+                        }
+                    } catch(err) {
+                        console.error('[USERS] Error simpan kredensial:', err);
+                        Swal.fire('Koneksi Terputus', 'Gagal menghubungi server VPS. Pastikan koneksi internet stabil.', 'error');
+                    }
+                },
+
+                saveUserPassword: function() {
+                    return this.saveUserCredentials();
                 },
 
                 handleLogoUpload: function(input) {
@@ -8339,7 +8768,7 @@
                     try {
                         const resp = await fetch('https://api.mashudin.my.id/api/save-settings', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-SISKA-KEY': 'SISKA-SECRET-MIRIT-2026-X9K8Z7-SECURE' },
                             body: JSON.stringify(newSettings)
                         });
                         if (resp.ok) {
